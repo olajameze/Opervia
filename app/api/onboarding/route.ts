@@ -1,0 +1,34 @@
+import { NextResponse } from "next/server";
+import { auth } from "@/auth";
+import { createOrganization, slugify } from "@/lib/services/organization";
+import { z } from "zod";
+
+const onboardingSchema = z.object({
+  organizationName: z.string().min(2),
+});
+
+export async function POST(req: Request) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const body = await req.json();
+    const { organizationName } = onboardingSchema.parse(body);
+    const slug = slugify(organizationName);
+
+    const organization = await createOrganization(
+      session.user.id,
+      organizationName,
+      slug
+    );
+
+    return NextResponse.json({ organizationId: organization.id, slug });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: error.errors }, { status: 400 });
+    }
+    return NextResponse.json({ error: "Onboarding failed" }, { status: 500 });
+  }
+}

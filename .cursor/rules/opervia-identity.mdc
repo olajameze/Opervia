@@ -1,0 +1,34 @@
+---
+description: Opervia brand identity and product scope enforcement
+globs: ["**/*.{ts,tsx,md,mdx}"]
+alwaysApply: true
+---
+
+# Opervia Project Identity
+
+## Product
+- **Name:** Opervia (always use this exact casing)
+- **Type:** B2B SaaS Rental + Workforce + Operations Platform
+- **Positioning:** Opervia is the Operational OS for modern businesses.
+
+## Taglines
+- Primary: "Run Your Entire Operation From One Platform"
+- Secondary: "Stop Managing Operations Through Spreadsheets & WhatsApp"
+
+## Mission
+Help businesses eliminate operational chaos by managing equipment rentals, staff, freelancers, scheduling, logistics, inventory, billing, analytics, notifications, and operational workflows.
+
+## Brand Values
+Simplicity, Operational clarity, Speed, Reliability, Automation, Scalability, Mobile-first experience, Professional enterprise UX
+
+## Design Direction
+Inspired by Linear, Stripe, Vercel, Notion. Use clean spacing, modern typography, minimal clutter, strong visual hierarchy, dashboard-first design.
+
+## Naming Rules
+- Use "Opervia" in all page titles, metadata, emails, auth flows, dashboards, legal pages, notifications, Stripe billing, onboarding, docs, PWA prompts, and SEO metadata.
+- Never use alternate product names or generic placeholders like "MyApp" or "Platform".
+
+## Copy Guidelines
+- Focus on operational outcomes, not feature jargon.
+- CTAs: "Start Free 5-Day Trial" (primary), "Book Demo" (secondary).
+- Target audience: growing teams across Europe.
