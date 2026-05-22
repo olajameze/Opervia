@@ -206,30 +206,35 @@ async function main() {
   console.log("Seed complete:");
   console.log("  Demo email: demo@opervia.com");
   console.log("  Demo password: password123");
-  console.log("  Super admin email: admin@opervia.com");
+  console.log("  Super admin email: opervia@gmail.com  (also: admin@opervia.com)");
   console.log("  Super admin password: password123");
 }
 
 async function seedSuperAdmin(passwordHash: string) {
-  const admin = await prisma.user.upsert({
-    where: { email: "admin@opervia.com" },
-    update: { isSuperAdmin: true },
-    create: {
-      name: "Opervia Admin",
-      email: "admin@opervia.com",
-      passwordHash,
-      emailVerified: new Date(),
-      isSuperAdmin: true,
-    },
-  });
+  const admins = [
+    { email: "opervia@gmail.com", name: "Opervia Owner" },
+    { email: "admin@opervia.com", name: "Opervia Admin" },
+  ];
+
+  for (const { email, name } of admins) {
+    await prisma.user.upsert({
+      where: { email },
+      update: { isSuperAdmin: true },
+      create: {
+        name,
+        email,
+        passwordHash,
+        emailVerified: new Date(),
+        isSuperAdmin: true,
+      },
+    });
+  }
 
   await prisma.systemSettings.upsert({
     where: { id: "default" },
     update: {},
     create: { id: "default" },
   });
-
-  return admin;
 }
 
 main()
