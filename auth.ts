@@ -6,7 +6,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { BRAND } from "@/lib/branding";
 import { superAdminEmails } from "@/lib/super-admin";
-import type { Role } from "@prisma/client";
+import { authConfig } from "@/auth.config";
 
 import type { JWT } from "next-auth/jwt";
 
@@ -49,12 +49,8 @@ async function loadMembershipIntoToken(token: JWT) {
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  ...authConfig,
   adapter: PrismaAdapter(prisma),
-  session: { strategy: "jwt" },
-  pages: {
-    signIn: "/login",
-    newUser: "/onboarding",
-  },
   providers: [
     ...(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET
       ? [
@@ -98,6 +94,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
+    ...authConfig.callbacks,
     async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id;
@@ -109,16 +106,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
 
       return token;
-    },
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string;
-        session.user.organizationId = token.organizationId as string | undefined;
-        session.user.role = token.role as Role | undefined;
-        session.user.organizationName = token.organizationName as string | undefined;
-        session.user.isSuperAdmin = Boolean(token.isSuperAdmin);
-      }
-      return session;
     },
   },
   events: {
