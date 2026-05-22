@@ -37,6 +37,10 @@
     --opervia-success: 142 76% 36%;
     --opervia-warning: 32 95% 44%;
     --opervia-destructive: 0 72% 51%;
+    --opervia-mesh-glow: 166 76% 92%;
+    --opervia-mesh-glow-opacity: 0.55;
+    --opervia-mesh-accent-opacity: 0.08;
+    --opervia-mesh-brand-opacity: 0.04;
 
     /* App sidebar (slate shell) */
     --sidebar: 222.2 47.4% 11.2%;
@@ -73,6 +77,18 @@
     --input: 217 33% 17%;
     --ring: 173 80% 40%;
 
+    --opervia-brand: 210 40% 98%;
+    --opervia-accent: 173 80% 40%;
+    --opervia-accent-light: 168 76% 50%;
+    --opervia-surface: 222.2 47.4% 11.2%;
+    --opervia-success: 142 70% 45%;
+    --opervia-warning: 38 92% 50%;
+    --opervia-destructive: 0 62% 45%;
+    --opervia-mesh-glow: 175 84% 32%;
+    --opervia-mesh-glow-opacity: 0.18;
+    --opervia-mesh-accent-opacity: 0.14;
+    --opervia-mesh-brand-opacity: 0.35;
+
     --sidebar: 222.2 47.4% 8%;
     --sidebar-foreground: 210 40% 98%;
     --sidebar-muted: 215 20% 65%;
@@ -101,8 +117,20 @@
   .opervia-hero-mesh {
     background-color: hsl(var(--opervia-surface));
     background-image:
-      radial-gradient(ellipse 80% 60% at 50% -10%, hsl(166 76% 92% / 0.55), transparent),
-      radial-gradient(ellipse 50% 40% at 90% 10%, hsl(175 84% 32% / 0.08), transparent),
-      radial-gradient(ellipse 40% 35% at 10% 20%, hsl(222 47% 11% / 0.04), transparent);
+      radial-gradient(
+        ellipse 80% 60% at 50% -10%,
+        hsl(var(--opervia-mesh-glow) / var(--opervia-mesh-glow-opacity)),
+        transparent
+      ),
+      radial-gradient(
+        ellipse 50% 40% at 90% 10%,
+        hsl(var(--opervia-accent) / var(--opervia-mesh-accent-opacity)),
+        transparent
+      ),
+      radial-gradient(
+        ellipse 40% 35% at 10% 20%,
+        hsl(var(--opervia-brand) / var(--opervia-mesh-brand-opacity)),
+        transparent
+      );
   }
 }
