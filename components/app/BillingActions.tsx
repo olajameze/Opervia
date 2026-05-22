@@ -2,18 +2,18 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import type { Organization } from "@prisma/client";
+import type { Organization, SubscriptionPlan } from "@prisma/client";
 import { PLANS } from "@/lib/plans";
 
 export function BillingActions({ organization }: { organization: Organization }) {
-  const [loadingPlan, setLoadingPlan] = useState<"STARTER" | "PRO" | null>(null);
+  const [loadingPlan, setLoadingPlan] = useState<SubscriptionPlan | null>(null);
 
   const canSubscribe =
     organization.subscriptionStatus === "TRIALING" ||
     organization.subscriptionStatus === "CANCELED" ||
     !organization.stripeSubscriptionId;
 
-  async function handleCheckout(plan: "STARTER" | "PRO") {
+  async function handleCheckout(plan: SubscriptionPlan) {
     setLoadingPlan(plan);
     try {
       const res = await fetch("/api/stripe/checkout", {
@@ -53,21 +53,27 @@ export function BillingActions({ organization }: { organization: Organization })
       {canSubscribe && (
         <>
           <Button
+            variant="outline"
             onClick={() => handleCheckout("STARTER")}
             disabled={loadingPlan !== null}
           >
             {loadingPlan === "STARTER"
               ? "Redirecting..."
-              : `Subscribe to Starter (${PLANS.STARTER.priceLabel}/mo)`}
+              : `Starter (${PLANS.STARTER.priceLabel}/mo)`}
           </Button>
-          <Button
-            variant="default"
-            onClick={() => handleCheckout("PRO")}
-            disabled={loadingPlan !== null}
-          >
+          <Button onClick={() => handleCheckout("PRO")} disabled={loadingPlan !== null}>
             {loadingPlan === "PRO"
               ? "Redirecting..."
-              : `Subscribe to Pro (${PLANS.PRO.priceLabel}/mo)`}
+              : `Pro (${PLANS.PRO.priceLabel}/mo)`}
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => handleCheckout("ENTERPRISE")}
+            disabled={loadingPlan !== null}
+          >
+            {loadingPlan === "ENTERPRISE"
+              ? "Redirecting..."
+              : `Enterprise (${PLANS.ENTERPRISE.priceLabel}/mo)`}
           </Button>
         </>
       )}

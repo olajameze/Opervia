@@ -126,7 +126,7 @@ export default async function BillingPage() {
             {onTrial && (
               <p className="text-muted-foreground pb-1">
                 Trial includes Starter features plus Logistics and Analytics previews. Subscribe
-                to unlock Automations and unlimited team members on Pro.
+                to Pro for Automations, or Enterprise for bulk CSV export.
               </p>
             )}
             <div className="flex justify-between">
@@ -139,9 +139,17 @@ export default async function BillingPage() {
 
             <div className="flex justify-between">
 
-              <span className="text-muted-foreground">Team members</span>
+              <span className="text-muted-foreground">Staff</span>
 
-              <span>{PLANS[plan].maxTeamMembers === null ? "Unlimited" : `Up to ${PLANS[plan].maxTeamMembers}`}</span>
+              <span>Up to {PLANS[plan].maxStaff}</span>
+
+            </div>
+
+            <div className="flex justify-between">
+
+              <span className="text-muted-foreground">Freelancers</span>
+
+              <span>Up to {PLANS[plan].maxFreelancers}</span>
 
             </div>
 

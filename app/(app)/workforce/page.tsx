@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 
 import { StaffForm, FreelancerForm, DeleteButton } from "@/components/app/ModuleForms";
 
-import { formatTeamMemberLimit } from "@/lib/entitlements";
+import { formatStaffLimit, formatFreelancerLimit } from "@/lib/entitlements";
 
 import { Users, UserCheck } from "lucide-react";
 
@@ -22,7 +22,8 @@ export default async function WorkforcePage() {
 
   const { organization } = await getOrganizationContext();
 
-  const teamLimitLabel = formatTeamMemberLimit(organization);
+  const staffLimitLabel = formatStaffLimit(organization);
+  const freelancerLimitLabel = formatFreelancerLimit(organization);
 
 
 
@@ -52,9 +53,6 @@ export default async function WorkforcePage() {
 
 
 
-  const totalMembers = staff.length + freelancers.length;
-
-
 
   return (
 
@@ -66,9 +64,7 @@ export default async function WorkforcePage() {
 
         <p className="text-muted-foreground">
 
-          Manage staff and freelancer profiles ({totalMembers}
-
-          {teamLimitLabel === "Unlimited" ? " · Unlimited" : `/${teamLimitLabel}`} team members).
+          Manage staff ({staff.length}/{staffLimitLabel}) and freelancers ({freelancers.length}/{freelancerLimitLabel}).
 
         </p>
 

@@ -10,7 +10,7 @@ function resolvePlan(
   metadataPlan: string | undefined,
   priceId: string | undefined
 ): SubscriptionPlan | undefined {
-  if (metadataPlan === "STARTER" || metadataPlan === "PRO") {
+  if (metadataPlan === "STARTER" || metadataPlan === "PRO" || metadataPlan === "ENTERPRISE") {
     return metadataPlan;
   }
   if (priceId) {

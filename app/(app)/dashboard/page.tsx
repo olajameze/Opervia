@@ -57,7 +57,7 @@ export default async function DashboardPage() {
             </p>
             <p className="text-sm text-amber-800 dark:text-amber-200/90 mt-0.5">
               You have full Starter access plus previews of Logistics and Analytics. Automations
-              and unlimited team members require a paid plan.
+              require Pro; bulk CSV export requires Enterprise.
             </p>
           </div>
           <LinkButton href="/billing" size="sm" variant="outline" className="shrink-0 border-amber-300">

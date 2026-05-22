@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import { BRAND } from "@/lib/branding";
+import type { SubscriptionPlan } from "@prisma/client";
 
 let cachedStripe: Stripe | null = null;
 
@@ -33,7 +34,7 @@ export async function createCheckoutSession({
   customerId?: string;
   priceId: string;
   organizationId: string;
-  plan: "STARTER" | "PRO";
+  plan: SubscriptionPlan;
   successUrl: string;
   cancelUrl: string;
 }) {

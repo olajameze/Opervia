@@ -6,7 +6,7 @@ import { getStripePriceId, type SubscriptionPlan } from "@/lib/plans";
 import { z } from "zod";
 
 const schema = z.object({
-  plan: z.enum(["STARTER", "PRO"]).default("PRO"),
+  plan: z.enum(["STARTER", "PRO", "ENTERPRISE"]).default("PRO"),
 });
 
 export async function POST(req: Request) {

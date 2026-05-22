@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { assertTeamMemberCapacity, requireApiOrganization } from "@/lib/api-auth";
+import { assertFreelancerCapacity, requireApiOrganization } from "@/lib/api-auth";
 
 const schema = z.object({
   name: z.string().min(1),
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
   const ctx = await requireApiOrganization("workforce");
   if ("error" in ctx) return ctx.error;
 
-  const limitError = await assertTeamMemberCapacity(ctx.organizationId);
+  const limitError = await assertFreelancerCapacity(ctx.organizationId);
   if (limitError) return limitError;
 
   try {

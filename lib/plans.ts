@@ -12,58 +12,77 @@ export type AppModule =
   | "analytics"
   | "automations";
 
+const STARTER_MODULES: AppModule[] = [
+  "dashboard",
+  "rentals",
+  "workforce",
+  "scheduling",
+  "billing",
+];
+
+const PRO_MODULES: AppModule[] = [
+  ...STARTER_MODULES,
+  "logistics",
+  "analytics",
+  "automations",
+];
+
 export const PLANS = {
   STARTER: {
     id: "STARTER" as SubscriptionPlan,
     name: "Starter",
-    price: 29,
-    priceLabel: "£29",
+    price: 99,
+    priceLabel: "£99",
     period: "/month",
-    maxTeamMembers: 5,
+    maxStaff: 5,
+    maxFreelancers: 10,
     description: "For small teams getting started with operational management.",
     features: [
-      "Up to 5 team members",
+      "Up to 5 staff & 10 freelancers",
       "Equipment & rental tracking",
       "Workforce profiles",
       "Job scheduling & dispatch",
       "Basic invoicing",
       "Email notifications",
     ],
-    modules: [
-      "dashboard",
-      "rentals",
-      "workforce",
-      "scheduling",
-      "billing",
-    ] as AppModule[],
+    modules: STARTER_MODULES,
   },
   PRO: {
     id: "PRO" as SubscriptionPlan,
     name: "Pro",
-    price: 59,
-    priceLabel: "£59",
+    price: 199,
+    priceLabel: "£199",
     period: "/month",
-    maxTeamMembers: null as number | null,
-    description: "For growing teams that need full operational control.",
+    maxStaff: 10,
+    maxFreelancers: 20,
+    description: "For small to medium businesses that need full operational control.",
     features: [
-      "Unlimited team members",
+      "Up to 10 staff & 20 freelancers",
       "Everything in Starter",
       "Logistics tracking",
       "Analytics dashboard",
       "Workflow automations",
-      "Stripe billing integration",
       "Priority support",
     ],
-    modules: [
-      "dashboard",
-      "rentals",
-      "workforce",
-      "scheduling",
-      "billing",
-      "logistics",
-      "analytics",
-      "automations",
-    ] as AppModule[],
+    modules: PRO_MODULES,
+  },
+  ENTERPRISE: {
+    id: "ENTERPRISE" as SubscriptionPlan,
+    name: "Enterprise",
+    price: 399,
+    priceLabel: "£399",
+    period: "/month",
+    maxStaff: 50,
+    maxFreelancers: 100,
+    description: "For medium and large businesses running complex operations at scale.",
+    features: [
+      "Up to 50 staff & 100 freelancers",
+      "Everything in Pro",
+      "Bulk CSV data export",
+      "Priority onboarding & support",
+      "Advanced operational scale",
+    ],
+    modules: PRO_MODULES,
   },
 } as const;
 
@@ -117,12 +136,14 @@ export function getPlanDisplayName(
 export function getStripePriceId(plan: SubscriptionPlan): string | undefined {
   if (plan === "STARTER") return process.env.STRIPE_PRICE_STARTER;
   if (plan === "PRO") return process.env.STRIPE_PRICE_PRO;
+  if (plan === "ENTERPRISE") return process.env.STRIPE_PRICE_ENTERPRISE;
   return undefined;
 }
 
 export function planFromStripePriceId(priceId: string): SubscriptionPlan | null {
   if (priceId === process.env.STRIPE_PRICE_STARTER) return "STARTER";
   if (priceId === process.env.STRIPE_PRICE_PRO) return "PRO";
+  if (priceId === process.env.STRIPE_PRICE_ENTERPRISE) return "ENTERPRISE";
   return null;
 }
 
@@ -176,26 +197,82 @@ export function canAccessModule(
   return PLANS[plan].modules.includes(module);
 }
 
-export function getTeamMemberLimit(
-  org: Pick<Organization, "subscriptionStatus" | "subscriptionPlan" | "trialEndsAt">
-): number | null {
-  return PLANS[getEffectivePlan(org)].maxTeamMembers;
+type PlanOrg = Pick<Organization, "subscriptionStatus" | "subscriptionPlan" | "trialEndsAt">;
+
+export function getStaffLimit(org: PlanOrg): number {
+  return PLANS[getEffectivePlan(org)].maxStaff;
 }
 
-export function formatTeamMemberLimit(
-  org: Pick<Organization, "subscriptionStatus" | "subscriptionPlan" | "trialEndsAt">
-): string {
-  const limit = getTeamMemberLimit(org);
-  return limit === null ? "Unlimited" : String(limit);
+export function getFreelancerLimit(org: PlanOrg): number {
+  return PLANS[getEffectivePlan(org)].maxFreelancers;
 }
 
-export function isTeamMemberLimitReached(
-  org: Pick<Organization, "subscriptionStatus" | "subscriptionPlan" | "trialEndsAt">,
-  currentCount: number
-): boolean {
-  const limit = getTeamMemberLimit(org);
-  if (limit === null) return false;
-  return currentCount >= limit;
+/** @deprecated Use getStaffLimit — kept for invite seat checks aligned with staff logins. */
+export function getTeamMemberLimit(org: PlanOrg): number {
+  return getStaffLimit(org);
+}
+
+export function formatStaffLimit(org: PlanOrg): string {
+  return String(getStaffLimit(org));
+}
+
+export function formatFreelancerLimit(org: PlanOrg): string {
+  return String(getFreelancerLimit(org));
+}
+
+export function formatTeamMemberLimit(org: PlanOrg): string {
+  return formatStaffLimit(org);
+}
+
+export function formatPlanStaffLimit(plan: SubscriptionPlan): string {
+  return `Up to ${PLANS[plan].maxStaff}`;
+}
+
+export function formatPlanFreelancerLimit(plan: SubscriptionPlan): string {
+  return `Up to ${PLANS[plan].maxFreelancers}`;
+}
+
+export function isStaffLimitReached(org: PlanOrg, currentCount: number): boolean {
+  return currentCount >= getStaffLimit(org);
+}
+
+export function isFreelancerLimitReached(org: PlanOrg, currentCount: number): boolean {
+  return currentCount >= getFreelancerLimit(org);
+}
+
+/** @deprecated Use isStaffLimitReached */
+export function isTeamMemberLimitReached(org: PlanOrg, currentCount: number): boolean {
+  return isStaffLimitReached(org, currentCount);
+}
+
+export function isEnterprisePlan(org: PlanOrg): boolean {
+  return hasActiveSubscription(org) && getEffectivePlan(org) === "ENTERPRISE";
+}
+
+export function canExportData(org: PlanOrg): boolean {
+  return isEnterprisePlan(org);
+}
+
+export function getStaffUpgradeMessage(org: PlanOrg): string {
+  const plan = getEffectivePlan(org);
+  if (plan === "STARTER") {
+    return `Upgrade to Pro for up to ${PLANS.PRO.maxStaff} staff members.`;
+  }
+  if (plan === "PRO") {
+    return `Upgrade to Enterprise for up to ${PLANS.ENTERPRISE.maxStaff} staff members.`;
+  }
+  return "Staff limit reached for your plan.";
+}
+
+export function getFreelancerUpgradeMessage(org: PlanOrg): string {
+  const plan = getEffectivePlan(org);
+  if (plan === "STARTER") {
+    return `Upgrade to Pro for up to ${PLANS.PRO.maxFreelancers} freelancers.`;
+  }
+  if (plan === "PRO") {
+    return `Upgrade to Enterprise for up to ${PLANS.ENTERPRISE.maxFreelancers} freelancers.`;
+  }
+  return "Freelancer limit reached for your plan.";
 }
 
 export function modulePath(module: AppModule): string {

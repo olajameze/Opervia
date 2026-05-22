@@ -3,8 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { OrganizationSettingsForm } from "@/components/app/ModuleForms";
 import { TeamInvitePanel } from "@/components/app/TeamInvitePanel";
+import { DataExportPanel } from "@/components/app/DataExportPanel";
 import { BRAND } from "@/lib/branding";
-import { getEffectivePlan } from "@/lib/entitlements";
+import { canExportData, getEffectivePlan } from "@/lib/entitlements";
 import { canManageTeamInvites } from "@/lib/roles";
 import { PLANS } from "@/lib/plans";
 import { formatDate } from "@/lib/utils";
@@ -13,6 +14,7 @@ export default async function SettingsPage() {
   const { session, organization } = await getOrganizationContext();
   const plan = getEffectivePlan(organization);
   const canInvite = canManageTeamInvites(session.user.role);
+  const canExport = canExportData(organization);
 
   return (
     <div className="space-y-8 max-w-2xl">
@@ -24,6 +26,8 @@ export default async function SettingsPage() {
       <OrganizationSettingsForm name={organization.name} />
 
       {canInvite && <TeamInvitePanel />}
+
+      <DataExportPanel organization={organization} canExport={canExport} />
 
       <Card>
         <CardHeader>

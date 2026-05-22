@@ -3,6 +3,12 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { canAccessModule, hasActiveSubscription } from "@/lib/entitlements";
 import type { AppModule } from "@/lib/plans";
+import {
+  getStaffLimit,
+  getFreelancerLimit,
+  getStaffUpgradeMessage,
+  getFreelancerUpgradeMessage,
+} from "@/lib/plans";
 
 export async function requireApiOrganization(module?: AppModule) {
   const session = await auth();
@@ -43,24 +49,19 @@ export async function requireApiOrganization(module?: AppModule) {
   return { session, organization, organizationId: organization.id };
 }
 
-export async function assertTeamMemberCapacity(organizationId: string) {
+export async function assertStaffCapacity(organizationId: string) {
   const organization = await prisma.organization.findUniqueOrThrow({
     where: { id: organizationId },
   });
 
-  const { getTeamMemberLimit } = await import("@/lib/entitlements");
-  const limit = getTeamMemberLimit(organization);
+  const limit = getStaffLimit(organization);
+  const staffCount = await prisma.staffProfile.count({ where: { organizationId } });
 
-  if (limit === null) return null;
-
-  const [staffCount, freelancerCount] = await Promise.all([
-    prisma.staffProfile.count({ where: { organizationId } }),
-    prisma.freelancerProfile.count({ where: { organizationId } }),
-  ]);
-
-  if (staffCount + freelancerCount >= limit) {
+  if (staffCount >= limit) {
     return NextResponse.json(
-      { error: `Team member limit reached (${limit}). Upgrade to Pro for unlimited team members.` },
+      {
+        error: `Staff limit reached (${limit}). ${getStaffUpgradeMessage(organization)}`,
+      },
       { status: 403 }
     );
   }
@@ -68,22 +69,45 @@ export async function assertTeamMemberCapacity(organizationId: string) {
   return null;
 }
 
+export async function assertFreelancerCapacity(organizationId: string) {
+  const organization = await prisma.organization.findUniqueOrThrow({
+    where: { id: organizationId },
+  });
+
+  const limit = getFreelancerLimit(organization);
+  const freelancerCount = await prisma.freelancerProfile.count({
+    where: { organizationId },
+  });
+
+  if (freelancerCount >= limit) {
+    return NextResponse.json(
+      {
+        error: `Freelancer limit reached (${limit}). ${getFreelancerUpgradeMessage(organization)}`,
+      },
+      { status: 403 }
+    );
+  }
+
+  return null;
+}
+
+/** @deprecated Use assertStaffCapacity or assertFreelancerCapacity */
+export async function assertTeamMemberCapacity(organizationId: string) {
+  return assertStaffCapacity(organizationId);
+}
+
 export async function assertMembershipCapacity(organizationId: string) {
   const organization = await prisma.organization.findUniqueOrThrow({
     where: { id: organizationId },
   });
 
-  const { getTeamMemberLimit } = await import("@/lib/entitlements");
-  const limit = getTeamMemberLimit(organization);
-
-  if (limit === null) return null;
-
+  const limit = getStaffLimit(organization);
   const memberCount = await prisma.membership.count({ where: { organizationId } });
 
   if (memberCount >= limit) {
     return NextResponse.json(
       {
-        error: `Team member limit reached (${limit}). Upgrade to Pro for unlimited team members.`,
+        error: `Login seat limit reached (${limit}). ${getStaffUpgradeMessage(organization)}`,
       },
       { status: 403 }
     );

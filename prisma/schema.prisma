@@ -86,6 +86,7 @@ enum SubscriptionStatus {
 enum SubscriptionPlan {
   STARTER
   PRO
+  ENTERPRISE
 }
 
 model Organization {

@@ -3,9 +3,14 @@ import {
   hasActiveSubscription,
   canAccessModule,
   getEffectivePlan,
-  getTeamMemberLimit,
-  formatTeamMemberLimit,
-  isTeamMemberLimitReached,
+  getStaffLimit,
+  getFreelancerLimit,
+  formatStaffLimit,
+  formatFreelancerLimit,
+  isStaffLimitReached,
+  isFreelancerLimitReached,
+  isEnterprisePlan,
+  canExportData,
   isTrialExpired,
   subscriptionIsWritable,
   INACTIVE_SUBSCRIPTION_PATHS,
@@ -30,6 +35,12 @@ const proOrg = {
   trialEndsAt: null,
 };
 
+const enterpriseOrg = {
+  subscriptionStatus: "ACTIVE" as const,
+  subscriptionPlan: "ENTERPRISE" as const,
+  trialEndsAt: null,
+};
+
 const expiredOrg = {
   subscriptionStatus: "TRIALING" as const,
   subscriptionPlan: null,
@@ -37,9 +48,10 @@ const expiredOrg = {
 };
 
 describe("plans", () => {
-  it("defines Starter and Pro pricing", () => {
-    expect(PLANS.STARTER.priceLabel).toBe("£29");
-    expect(PLANS.PRO.priceLabel).toBe("£59");
+  it("defines Starter, Pro, and Enterprise pricing", () => {
+    expect(PLANS.STARTER.priceLabel).toBe("£99");
+    expect(PLANS.PRO.priceLabel).toBe("£199");
+    expect(PLANS.ENTERPRISE.priceLabel).toBe("£399");
   });
 
   it("limits trial to Starter plus Pro previews", () => {
@@ -48,7 +60,8 @@ describe("plans", () => {
     expect(canAccessModule(trialingOrg, "logistics")).toBe(true);
     expect(canAccessModule(trialingOrg, "analytics")).toBe(true);
     expect(canAccessModule(trialingOrg, "automations")).toBe(false);
-    expect(getTeamMemberLimit(trialingOrg)).toBe(5);
+    expect(getStaffLimit(trialingOrg)).toBe(5);
+    expect(getFreelancerLimit(trialingOrg)).toBe(10);
   });
 
   it("restricts Starter plan modules", () => {
@@ -62,15 +75,29 @@ describe("plans", () => {
     expect(canAccessModule(proOrg, "automations")).toBe(true);
   });
 
-  it("limits team members by plan", () => {
-    expect(getTeamMemberLimit(starterOrg)).toBe(5);
-    expect(getTeamMemberLimit(proOrg)).toBeNull();
-    expect(formatTeamMemberLimit(proOrg)).toBe("Unlimited");
+  it("limits staff and freelancers by plan", () => {
+    expect(getStaffLimit(starterOrg)).toBe(5);
+    expect(getFreelancerLimit(starterOrg)).toBe(10);
+    expect(getStaffLimit(proOrg)).toBe(10);
+    expect(getFreelancerLimit(proOrg)).toBe(20);
+    expect(getStaffLimit(enterpriseOrg)).toBe(50);
+    expect(getFreelancerLimit(enterpriseOrg)).toBe(100);
+    expect(formatStaffLimit(proOrg)).toBe("10");
+    expect(formatFreelancerLimit(proOrg)).toBe("20");
   });
 
-  it("never blocks Pro plan team growth", () => {
-    expect(isTeamMemberLimitReached(proOrg, 1000)).toBe(false);
-    expect(isTeamMemberLimitReached(starterOrg, 5)).toBe(true);
+  it("blocks growth when plan limits are reached", () => {
+    expect(isStaffLimitReached(proOrg, 10)).toBe(true);
+    expect(isStaffLimitReached(proOrg, 9)).toBe(false);
+    expect(isFreelancerLimitReached(starterOrg, 10)).toBe(true);
+    expect(isFreelancerLimitReached(starterOrg, 9)).toBe(false);
+  });
+
+  it("gates bulk export to Enterprise only", () => {
+    expect(canExportData(proOrg)).toBe(false);
+    expect(canExportData(enterpriseOrg)).toBe(true);
+    expect(isEnterprisePlan(enterpriseOrg)).toBe(true);
+    expect(isEnterprisePlan(proOrg)).toBe(false);
   });
 });
 
