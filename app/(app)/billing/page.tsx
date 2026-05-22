@@ -16,7 +16,7 @@ import { InvoiceForm, PaymentForm, StatusSelect } from "@/components/app/ModuleF
 
 import { BRAND } from "@/lib/branding";
 
-import { getEffectivePlan } from "@/lib/entitlements";
+import { getEffectivePlan, getPlanDisplayName, isOnActiveTrial, getTrialDaysRemaining } from "@/lib/entitlements";
 
 import { PLANS } from "@/lib/plans";
 
@@ -31,6 +31,8 @@ export default async function BillingPage() {
   const { organization } = await getOrganizationContext();
 
   const plan = getEffectivePlan(organization);
+  const onTrial = isOnActiveTrial(organization);
+  const trialDays = onTrial ? getTrialDaysRemaining(organization) : null;
 
 
 
@@ -107,19 +109,19 @@ export default async function BillingPage() {
           <CardHeader>
 
             <CardTitle>Current plan</CardTitle>
-
             <CardDescription>
-
-              {PLANS[plan].name} — {PLANS[plan].priceLabel}
-
-              {PLANS[plan].period}
-
+              {onTrial
+                ? `Free trial · ${trialDays} day${trialDays === 1 ? "" : "s"} remaining`
+                : `${PLANS[plan].name} — ${PLANS[plan].priceLabel}${PLANS[plan].period}`}
             </CardDescription>
-
           </CardHeader>
-
           <CardContent className="space-y-2 text-sm">
-
+            {onTrial && (
+              <p className="text-muted-foreground pb-1">
+                Trial includes Starter features plus Logistics and Analytics previews. Subscribe
+                to unlock Automations and unlimited team members on Pro.
+              </p>
+            )}
             <div className="flex justify-between">
 
               <span className="text-muted-foreground">Status</span>

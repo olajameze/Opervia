@@ -3,8 +3,10 @@ import { getDashboardStats } from "@/lib/services/dashboard";
 import { StatCard } from "@/components/app/StatCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { LinkButton } from "@/components/ui/link-button";
 import { formatCurrency } from "@/lib/utils";
 import { BRAND } from "@/lib/branding";
+import { getTrialDaysRemaining, isOnActiveTrial } from "@/lib/entitlements";
 import {
   Briefcase,
   Users,
@@ -36,13 +38,22 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      {organization.subscriptionStatus === "TRIALING" && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 flex items-center justify-between">
-          <p className="text-sm text-amber-800">
-            Your {BRAND.trialDays}-day trial is active
-            {organization.trialEndsAt && ` · ends ${formatDate(organization.trialEndsAt)}`}
-          </p>
-          <Badge variant="warning">Trial</Badge>
+      {isOnActiveTrial(organization) && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between dark:border-amber-800 dark:bg-amber-950/30">
+          <div>
+            <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
+              Free trial active
+              {organization.trialEndsAt &&
+                ` · ${getTrialDaysRemaining(organization)} day${getTrialDaysRemaining(organization) === 1 ? "" : "s"} left`}
+            </p>
+            <p className="text-sm text-amber-800 dark:text-amber-200/90 mt-0.5">
+              You have full Starter access plus previews of Logistics and Analytics. Automations
+              and unlimited team members require a paid plan.
+            </p>
+          </div>
+          <LinkButton href="/billing" size="sm" variant="outline" className="shrink-0 border-amber-300">
+            View plans
+          </LinkButton>
         </div>
       )}
 

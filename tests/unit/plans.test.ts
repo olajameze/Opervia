@@ -39,10 +39,13 @@ describe("plans", () => {
     expect(PLANS.PRO.priceLabel).toBe("£59");
   });
 
-  it("grants Pro modules during active trial", () => {
-    expect(getEffectivePlan(trialingOrg)).toBe("PRO");
-    expect(canAccessModule(trialingOrg, "analytics")).toBe(true);
+  it("limits trial to Starter plus Pro previews", () => {
+    expect(getEffectivePlan(trialingOrg)).toBe("STARTER");
+    expect(canAccessModule(trialingOrg, "rentals")).toBe(true);
     expect(canAccessModule(trialingOrg, "logistics")).toBe(true);
+    expect(canAccessModule(trialingOrg, "analytics")).toBe(true);
+    expect(canAccessModule(trialingOrg, "automations")).toBe(false);
+    expect(getTeamMemberLimit(trialingOrg)).toBe(5);
   });
 
   it("restricts Starter plan modules", () => {

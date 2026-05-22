@@ -67,6 +67,53 @@ export const PLANS = {
   },
 } as const;
 
+/** Modules available during the free trial — Starter core + a preview of select Pro features. */
+export const TRIAL_MODULES: AppModule[] = [
+  "dashboard",
+  "rentals",
+  "workforce",
+  "scheduling",
+  "billing",
+  "logistics",
+  "analytics",
+];
+
+/** Days before trial end when we show the upgrade prompt. */
+export const TRIAL_ENDING_SOON_DAYS = 2;
+
+export function isOnActiveTrial(
+  org: Pick<Organization, "subscriptionStatus" | "trialEndsAt">
+): boolean {
+  return (
+    org.subscriptionStatus === "TRIALING" &&
+    org.trialEndsAt != null &&
+    org.trialEndsAt > new Date()
+  );
+}
+
+export function getTrialDaysRemaining(
+  org: Pick<Organization, "subscriptionStatus" | "trialEndsAt">
+): number | null {
+  if (!isOnActiveTrial(org) || !org.trialEndsAt) return null;
+  const ms = org.trialEndsAt.getTime() - Date.now();
+  return Math.max(0, Math.ceil(ms / (1000 * 60 * 60 * 24)));
+}
+
+export function isTrialEndingSoon(
+  org: Pick<Organization, "subscriptionStatus" | "trialEndsAt">,
+  withinDays = TRIAL_ENDING_SOON_DAYS
+): boolean {
+  const days = getTrialDaysRemaining(org);
+  return days !== null && days <= withinDays;
+}
+
+export function getPlanDisplayName(
+  org: Pick<Organization, "subscriptionStatus" | "subscriptionPlan" | "trialEndsAt">
+): string {
+  if (isOnActiveTrial(org)) return "Free Trial";
+  return PLANS[getEffectivePlan(org)].name;
+}
+
 export function getStripePriceId(plan: SubscriptionPlan): string | undefined {
   if (plan === "STARTER") return process.env.STRIPE_PRICE_STARTER;
   if (plan === "PRO") return process.env.STRIPE_PRICE_PRO;
@@ -92,12 +139,8 @@ export function hasActiveSubscription(
 export function getEffectivePlan(
   org: Pick<Organization, "subscriptionStatus" | "subscriptionPlan" | "trialEndsAt">
 ): SubscriptionPlan {
-  if (
-    org.subscriptionStatus === "TRIALING" &&
-    org.trialEndsAt &&
-    org.trialEndsAt > new Date()
-  ) {
-    return "PRO";
+  if (isOnActiveTrial(org)) {
+    return "STARTER";
   }
   if (org.subscriptionStatus === "ACTIVE" && org.subscriptionPlan) {
     return org.subscriptionPlan;
@@ -111,6 +154,9 @@ export function canAccessModule(
 ): boolean {
   if (!hasActiveSubscription(org)) {
     return module === "billing";
+  }
+  if (isOnActiveTrial(org)) {
+    return TRIAL_MODULES.includes(module);
   }
   const plan = getEffectivePlan(org);
   return PLANS[plan].modules.includes(module);

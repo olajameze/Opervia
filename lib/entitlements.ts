@@ -6,6 +6,10 @@ import {
   formatTeamMemberLimit,
   isTeamMemberLimitReached,
   hasActiveSubscription as orgHasActiveSubscription,
+  getPlanDisplayName,
+  isOnActiveTrial,
+  getTrialDaysRemaining,
+  isTrialEndingSoon,
   type AppModule,
 } from "./plans";
 
@@ -24,4 +28,13 @@ export function canAccessModule(
   return canAccessModuleForOrg(org, module);
 }
 
-export { getEffectivePlan, getTeamMemberLimit, formatTeamMemberLimit, isTeamMemberLimitReached };
+export {
+  getEffectivePlan,
+  getTeamMemberLimit,
+  formatTeamMemberLimit,
+  isTeamMemberLimitReached,
+  getPlanDisplayName,
+  isOnActiveTrial,
+  getTrialDaysRemaining,
+  isTrialEndingSoon,
+};
