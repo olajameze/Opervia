@@ -1,8 +1,8 @@
 import { BRAND } from "./branding";
-
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://opervia.com";
+import { getAppUrl } from "./app-url";
 
 export function softwareApplicationSchema() {
+  const appUrl = getAppUrl();
   return {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
@@ -16,16 +16,17 @@ export function softwareApplicationSchema() {
       priceCurrency: "EUR",
       description: `Free ${BRAND.trialDays}-day trial`,
     },
-    url: APP_URL,
+    url: appUrl,
   };
 }
 
 export function organizationSchema() {
+  const appUrl = getAppUrl();
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: BRAND.name,
-    url: APP_URL,
+    url: appUrl,
     description: BRAND.positioning,
     email: BRAND.supportEmail,
   };

@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { createCheckoutSession } from "@/lib/stripe";
 import { getStripePriceId, type SubscriptionPlan } from "@/lib/plans";
+import { getAppUrl } from "@/lib/app-url";
 import { z } from "zod";
 
 const schema = z.object({
@@ -34,7 +35,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Organization not found" }, { status: 404 });
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const appUrl = getAppUrl();
 
   try {
     const checkoutSession = await createCheckoutSession({

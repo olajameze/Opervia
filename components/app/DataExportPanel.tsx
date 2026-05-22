@@ -56,6 +56,8 @@ export function DataExportPanel({
   }
 
   async function download(resource: string) {
+    if (loading !== null || exportingAll) return;
+
     setLoading(resource);
     setError("");
 
@@ -74,6 +76,8 @@ export function DataExportPanel({
   }
 
   async function exportAll() {
+    if (loading !== null || exportingAll) return;
+
     setExportingAll(true);
     setError("");
     const failures: string[] = [];
@@ -129,6 +133,8 @@ export function DataExportPanel({
     );
   }
 
+  const isBusy = loading !== null || exportingAll;
+
   return (
     <Card>
       <CardHeader>
@@ -148,14 +154,14 @@ export function DataExportPanel({
               type="button"
               variant="outline"
               size="sm"
-              disabled={loading !== null}
+              disabled={isBusy}
               onClick={() => download(resource.id)}
             >
               {loading === resource.id ? "Exporting..." : resource.label}
             </Button>
           ))}
         </div>
-        <Button type="button" size="sm" disabled={loading !== null} onClick={exportAll}>
+        <Button type="button" size="sm" disabled={isBusy} onClick={exportAll}>
           {exportingAll ? "Exporting all..." : "Export all"}
         </Button>
         {error && <p className="text-sm text-destructive">{error}</p>}

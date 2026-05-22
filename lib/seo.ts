@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { BRAND } from "./branding";
-
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://opervia.com";
+import { getAppUrl } from "./app-url";
 
 export function createMetadata({
   title,
@@ -21,15 +20,17 @@ export function createMetadata({
     description ??
     `${BRAND.name} — ${BRAND.tagline}. ${BRAND.secondaryTagline}`;
 
+  const appUrl = getAppUrl();
+
   return {
     title: fullTitle,
     description: desc,
-    metadataBase: new URL(APP_URL),
-    alternates: { canonical: `${APP_URL}${path}` },
+    metadataBase: new URL(appUrl),
+    alternates: { canonical: `${appUrl}${path}` },
     openGraph: {
       title: fullTitle,
       description: desc,
-      url: `${APP_URL}${path}`,
+      url: `${appUrl}${path}`,
       siteName: BRAND.name,
       type: "website",
       locale: "en_GB",

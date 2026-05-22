@@ -4,6 +4,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { sendEmail, requireEmailForTransactional } from "@/lib/email";
 import { BRAND } from "@/lib/branding";
+import { getAppUrl } from "@/lib/app-url";
 
 const schema = z.object({
   email: z.string().email(),
@@ -47,7 +48,7 @@ export async function POST(req: Request) {
       },
     });
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+    const appUrl = getAppUrl();
     const resetUrl = `${appUrl}/reset-password?token=${token}`;
 
     const result = await sendEmail({

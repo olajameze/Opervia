@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createBillingPortalSession } from "@/lib/stripe";
 import { requireApiOrganization } from "@/lib/api-auth";
+import { getAppUrl } from "@/lib/app-url";
 
 export async function POST() {
   const ctx = await requireApiOrganization("billing");
@@ -13,7 +14,7 @@ export async function POST() {
     );
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const appUrl = getAppUrl();
   const portal = await createBillingPortalSession(
     ctx.organization.stripeCustomerId,
     `${appUrl}/billing`

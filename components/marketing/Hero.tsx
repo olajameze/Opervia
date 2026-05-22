@@ -23,7 +23,12 @@ export function Hero() {
               {HERO.primaryCta}
               <ArrowRight className="ml-1 h-4 w-4" />
             </LinkButton>
-            <LinkButton href="#features" size="lg" variant="outline">
+            <LinkButton
+              href="#features"
+              size="lg"
+              variant="outline"
+              className="border-border bg-card text-foreground shadow-sm hover:border-primary/30 hover:bg-card"
+            >
               {HERO.secondaryCta}
             </LinkButton>
           </div>

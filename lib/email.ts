@@ -32,7 +32,6 @@ export function validateProductionEmailConfig() {
   if (missing.length > 0) {
     const message = `[${BRAND.name}] Production email misconfigured — missing: ${missing.join(", ")}`;
     console.error(message);
-    throw new Error(message);
   }
 }
 

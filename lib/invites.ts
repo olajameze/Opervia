@@ -3,6 +3,7 @@ import type { Role } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
 import { BRAND } from "@/lib/branding";
+import { getAppUrl } from "@/lib/app-url";
 import { INVITABLE_ROLES } from "@/lib/roles";
 
 export const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -42,7 +43,7 @@ export async function sendTeamInviteEmail({
   role: Role;
   inviterName: string | null;
 }) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const appUrl = getAppUrl();
   const inviteUrl = `${appUrl}/invite?token=${token}`;
   const roleLabel = role.replace(/_/g, " ").toLowerCase();
 
