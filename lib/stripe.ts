@@ -37,9 +37,10 @@ export async function createCheckoutSession({
   successUrl: string;
   cancelUrl: string;
 }) {
+  // Subscription mode cannot use `customer_creation` (payment mode only).
+  // Omit `customer` when none exists — Checkout collects email and creates one.
   return getStripe().checkout.sessions.create({
-    customer: customerId,
-    customer_creation: customerId ? undefined : "always",
+    ...(customerId ? { customer: customerId } : {}),
     mode: "subscription",
     payment_method_types: ["card"],
     line_items: [{ price: priceId, quantity: 1 }],

@@ -36,14 +36,28 @@ export async function POST(req: Request) {
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
-  const checkoutSession = await createCheckoutSession({
-    customerId: org.stripeCustomerId ?? undefined,
-    priceId,
-    organizationId: org.id,
-    plan,
-    successUrl: `${appUrl}/billing?success=true`,
-    cancelUrl: `${appUrl}/billing?canceled=true`,
-  });
+  try {
+    const checkoutSession = await createCheckoutSession({
+      customerId: org.stripeCustomerId ?? undefined,
+      priceId,
+      organizationId: org.id,
+      plan,
+      successUrl: `${appUrl}/billing?success=true`,
+      cancelUrl: `${appUrl}/billing?canceled=true`,
+    });
 
-  return NextResponse.json({ url: checkoutSession.url });
+    if (!checkoutSession.url) {
+      return NextResponse.json(
+        { error: "Stripe did not return a checkout URL" },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ url: checkoutSession.url });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Checkout failed";
+    console.error("[stripe/checkout]", message);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
