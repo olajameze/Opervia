@@ -4,6 +4,7 @@ import {
   isEmailConfigured,
   sendEmail,
   validateProductionEmailConfig,
+  warnProductionEmailConfig,
 } from "@/lib/email";
 
 describe("email", () => {
@@ -70,6 +71,18 @@ describe("email", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
 
     expect(() => validateProductionEmailConfig()).toThrow(/RESEND_API_KEY/);
+  });
+
+  it("warns but does not throw outside strict validation", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("VERCEL_ENV", "production");
+    delete process.env.RESEND_API_KEY;
+    delete process.env.RESEND_FROM;
+
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    expect(() => warnProductionEmailConfig()).not.toThrow();
+    expect(errorSpy).toHaveBeenCalled();
   });
 
   it("does not throw outside production", () => {

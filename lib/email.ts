@@ -21,8 +21,8 @@ export function isEmailConfigured() {
   return Boolean(process.env.RESEND_API_KEY?.trim() && process.env.RESEND_FROM?.trim());
 }
 
-/** Fail fast in production when required email env vars are missing. */
-export function validateProductionEmailConfig() {
+/** Log production email misconfiguration without crashing the app. */
+export function warnProductionEmailConfig() {
   if (!isProductionRuntime()) return;
 
   const missing: string[] = [];
@@ -32,7 +32,23 @@ export function validateProductionEmailConfig() {
   if (missing.length > 0) {
     const message = `[${BRAND.name}] Production email misconfigured — missing: ${missing.join(", ")}`;
     console.error(message);
-    throw new Error(message);
+  }
+}
+
+/** Fail fast when production email env vars are missing (for tests/strict checks). */
+export function validateProductionEmailConfig() {
+  warnProductionEmailConfig();
+
+  if (!isProductionRuntime()) return;
+
+  const missing: string[] = [];
+  if (!process.env.RESEND_API_KEY?.trim()) missing.push("RESEND_API_KEY");
+  if (!process.env.RESEND_FROM?.trim()) missing.push("RESEND_FROM");
+
+  if (missing.length > 0) {
+    throw new Error(
+      `[${BRAND.name}] Production email misconfigured — missing: ${missing.join(", ")}`
+    );
   }
 }
 
