@@ -7,6 +7,10 @@ import { prisma } from "@/lib/db";
 import { BRAND } from "@/lib/branding";
 import { superAdminEmails } from "@/lib/super-admin";
 import { authConfig } from "@/auth.config";
+import {
+  sendNewSignupAdminNotification,
+  sendWelcomeEmail,
+} from "@/lib/registration-emails";
 
 import type { JWT } from "next-auth/jwt";
 
@@ -84,6 +88,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         if (!valid) return null;
 
+        if (!user.emailVerified) {
+          const hasMembership = await prisma.membership.findFirst({
+            where: { userId: user.id },
+            select: { id: true },
+          });
+
+          if (!hasMembership) return null;
+
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { emailVerified: new Date() },
+          });
+        }
+
         return {
           id: user.id,
           email: user.email,
@@ -95,6 +113,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     ...authConfig.callbacks,
+    async signIn({ user, account }) {
+      if (account?.provider === "credentials" && user.email) {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: user.email },
+          select: { emailVerified: true, id: true },
+        });
+
+        if (!dbUser) return false;
+
+        if (!dbUser.emailVerified) {
+          const hasMembership = await prisma.membership.findFirst({
+            where: { userId: dbUser.id },
+            select: { id: true },
+          });
+          if (!hasMembership) return false;
+        }
+      }
+
+      return true;
+    },
     async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id;
@@ -110,7 +148,32 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   events: {
     async createUser({ user }) {
+      if (!user.email) return;
+
       console.log(`[${BRAND.name}] New user registered: ${user.email}`);
+
+      const adminResult = await sendNewSignupAdminNotification({
+        email: user.email,
+        name: user.name ?? user.email,
+        method: "google",
+      });
+
+      if (!adminResult.ok) {
+        console.error(
+          `[${BRAND.name}] Signup admin notification failed for ${user.email}: ${adminResult.error}`
+        );
+      }
+
+      const welcomeResult = await sendWelcomeEmail({
+        email: user.email,
+        name: user.name ?? user.email,
+      });
+
+      if (!welcomeResult.ok) {
+        console.error(
+          `[${BRAND.name}] Welcome email failed for ${user.email}: ${welcomeResult.error}`
+        );
+      }
     },
   },
 });

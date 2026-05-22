@@ -26,6 +26,13 @@ describe("email", () => {
     expect(getEmailConfigError()).toBe("RESEND_API_KEY is not set");
   });
 
+  it("treats placeholder API keys as missing configuration", () => {
+    vi.stubEnv("RESEND_API_KEY", "re_xxxxxxxxx");
+    vi.stubEnv("RESEND_FROM", "onboarding@resend.dev");
+    expect(isEmailConfigured()).toBe(false);
+    expect(getEmailConfigError()).toBe("RESEND_API_KEY is not set");
+  });
+
   it("logs instead of sending in development when misconfigured", async () => {
     vi.stubEnv("NODE_ENV", "development");
     vi.stubEnv("VERCEL_ENV", "development");

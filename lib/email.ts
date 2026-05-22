@@ -18,8 +18,20 @@ function isProductionRuntime() {
   return process.env.NODE_ENV === "production" && process.env.VERCEL_ENV !== "preview";
 }
 
+function isPlaceholderResendApiKey(apiKey: string) {
+  const normalized = apiKey.trim().toLowerCase();
+  if (!normalized.startsWith("re_")) return false;
+  return /^re_[x.*_\-]+$/.test(normalized);
+}
+
+function getResendApiKey() {
+  const apiKey = process.env.RESEND_API_KEY?.trim();
+  if (!apiKey || isPlaceholderResendApiKey(apiKey)) return null;
+  return apiKey;
+}
+
 export function isEmailConfigured() {
-  return Boolean(process.env.RESEND_API_KEY?.trim() && process.env.RESEND_FROM?.trim());
+  return Boolean(getResendApiKey() && process.env.RESEND_FROM?.trim());
 }
 
 /** Log production email misconfiguration without crashing the app. */
@@ -27,7 +39,7 @@ export function warnProductionEmailConfig() {
   if (!isProductionRuntime()) return;
 
   const missing: string[] = [];
-  if (!process.env.RESEND_API_KEY?.trim()) missing.push("RESEND_API_KEY");
+  if (!getResendApiKey()) missing.push("RESEND_API_KEY");
   if (!process.env.RESEND_FROM?.trim()) missing.push("RESEND_FROM");
 
   if (missing.length > 0) {
@@ -54,7 +66,7 @@ export function validateProductionEmailConfig() {
 }
 
 export function getEmailConfigError(): string | null {
-  if (!process.env.RESEND_API_KEY?.trim()) return "RESEND_API_KEY is not set";
+  if (!getResendApiKey()) return "RESEND_API_KEY is not set";
   if (!process.env.RESEND_FROM?.trim()) return "RESEND_FROM is not set";
   return null;
 }

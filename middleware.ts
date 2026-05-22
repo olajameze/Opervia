@@ -12,6 +12,7 @@ const publicRoutes = [
   "/register",
   "/forgot-password",
   "/reset-password",
+  "/verify-email",
   "/privacy",
   "/terms",
   "/security",
@@ -24,7 +25,7 @@ const publicRoutes = [
   "/api/stripe/webhook",
 ];
 
-const authRoutes = ["/login", "/register", "/forgot-password", "/reset-password"];
+const authRoutes = ["/login", "/register", "/forgot-password", "/reset-password", "/verify-email"];
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;

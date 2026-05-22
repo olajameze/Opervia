@@ -49,8 +49,18 @@ export function RegisterForm({
       return;
     }
 
+    const data = await res.json();
+    const email = form.get("email") as string;
+
+    if (data.requiresEmailVerification) {
+      const params = new URLSearchParams({ email });
+      router.push(`/verify-email?${params.toString()}`);
+      router.refresh();
+      return;
+    }
+
     const result = await signIn("credentials", {
-      email: form.get("email") as string,
+      email,
       password: form.get("password") as string,
       redirect: false,
     });

@@ -15,8 +15,11 @@ export function LoginForm({ showGoogleAuth = false }: { showGoogleAuth?: boolean
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
+  const verified = searchParams.get("verified") === "1";
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState("");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -24,20 +27,37 @@ export function LoginForm({ showGoogleAuth = false }: { showGoogleAuth?: boolean
     setError("");
 
     const form = new FormData(e.currentTarget);
+    const email = form.get("email") as string;
     const result = await signIn("credentials", {
-      email: form.get("email") as string,
+      email,
       password: form.get("password") as string,
       redirect: false,
     });
 
     if (result?.error) {
-      setError("Invalid email or password");
+      setUnverifiedEmail(email);
+      setError(
+        result.error === "AccessDenied"
+          ? "Please verify your email before signing in."
+          : "Invalid email or password. If you haven't verified your email yet, use the link below."
+      );
       setLoading(false);
       return;
     }
 
     router.push(callbackUrl);
     router.refresh();
+  }
+
+  async function handleResendVerification() {
+    if (!unverifiedEmail) return;
+    setResending(true);
+    await fetch("/api/auth/resend-verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: unverifiedEmail }),
+    });
+    setResending(false);
   }
 
   return (
@@ -65,6 +85,29 @@ export function LoginForm({ showGoogleAuth = false }: { showGoogleAuth?: boolean
             <PasswordInput id="password" name="password" required />
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
+          {verified && (
+            <p className="text-sm text-emerald-600">
+              Email verified. You can sign in now.
+            </p>
+          )}
+          {(error || unverifiedEmail) && (
+            <p className="text-sm text-muted-foreground">
+              Need a new verification link?{" "}
+              <button
+                type="button"
+                className="text-primary hover:underline disabled:opacity-50"
+                onClick={handleResendVerification}
+                disabled={!unverifiedEmail || resending}
+              >
+                {resending ? "Sending..." : "Resend verification email"}
+              </button>
+              {" "}or{" "}
+              <Link href={`/verify-email${unverifiedEmail ? `?email=${encodeURIComponent(unverifiedEmail)}` : ""}`} className="text-primary hover:underline">
+                open verify page
+              </Link>
+              .
+            </p>
+          )}
           <div className="flex justify-center pt-1">
             <Button type="submit" className="min-w-[200px]" disabled={loading}>
               {loading ? "Signing in..." : "Sign in"}
