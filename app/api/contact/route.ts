@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { BRAND } from "@/lib/branding";
+import { sendEmail, requireEmailForTransactional } from "@/lib/email";
 
 const schema = z.object({
   name: z.string().trim().min(1, "Name is required").max(120),
@@ -25,46 +26,34 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid submission" }, { status: 400 });
   }
 
-  const submittedAt = new Date().toISOString();
+  const emailBlocked = requireEmailForTransactional("Contact form email");
+  if (emailBlocked) {
+    return NextResponse.json(
+      { error: "Contact form is temporarily unavailable. Email support directly." },
+      { status: 503 }
+    );
+  }
 
-  console.log(`[${BRAND.name}] Contact inquiry`, {
-    submittedAt,
-    name: payload.name,
-    email: payload.email,
-    company: payload.company ?? null,
-    phone: payload.phone ?? null,
-    subject: payload.subject,
-    message: payload.message,
+  const result = await sendEmail({
+    to: BRAND.salesEmail,
+    replyTo: payload.email,
+    subject: `[${BRAND.name} contact] ${payload.subject}`,
+    text: [
+      `From: ${payload.name} <${payload.email}>`,
+      payload.company ? `Company: ${payload.company}` : null,
+      payload.phone ? `Phone: ${payload.phone}` : null,
+      "",
+      payload.message,
+    ]
+      .filter(Boolean)
+      .join("\n"),
   });
 
-  const resendKey = process.env.RESEND_API_KEY;
-  if (resendKey) {
-    try {
-      await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${resendKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from: process.env.RESEND_FROM ?? `${BRAND.name} <no-reply@opervia.com>`,
-          to: [BRAND.salesEmail],
-          reply_to: payload.email,
-          subject: `[${BRAND.name} contact] ${payload.subject}`,
-          text: [
-            `From: ${payload.name} <${payload.email}>`,
-            payload.company ? `Company: ${payload.company}` : null,
-            payload.phone ? `Phone: ${payload.phone}` : null,
-            "",
-            payload.message,
-          ]
-            .filter(Boolean)
-            .join("\n"),
-        }),
-      });
-    } catch (err) {
-      console.error(`[${BRAND.name}] Failed to send contact email via Resend`, err);
-    }
+  if (!result.ok) {
+    return NextResponse.json(
+      { error: "We could not deliver your message. Please try again later." },
+      { status: 503 }
+    );
   }
 
   return NextResponse.json({ ok: true });

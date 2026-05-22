@@ -9,6 +9,8 @@ import {
   INACTIVE_SUBSCRIPTION_PATHS,
   type AppModule,
 } from "@/lib/entitlements";
+import { canRoleAccessModule } from "@/lib/roles";
+import { normalizeInviteEmail } from "@/lib/invites";
 
 export async function getSession() {
   return auth();
@@ -31,7 +33,21 @@ export async function requireOrganization() {
     orderBy: { createdAt: "asc" },
   });
 
-  if (!membership) redirect("/onboarding");
+  if (!membership) {
+    const pendingInvite = session.user.email
+      ? await prisma.teamInvite.findFirst({
+          where: {
+            email: normalizeInviteEmail(session.user.email),
+            acceptedAt: null,
+            expiresAt: { gt: new Date() },
+          },
+          orderBy: { createdAt: "desc" },
+        })
+      : null;
+
+    if (pendingInvite) redirect(`/invite?token=${pendingInvite.token}`);
+    redirect("/onboarding");
+  }
 
   return {
     ...session,
@@ -71,14 +87,19 @@ export function enforceSubscriptionAccess(
 }
 
 export async function requireModuleAccess(module: AppModule) {
-  const { organization } = await getOrganizationContext();
+  const { session, organization } = await getOrganizationContext();
+
+  if (!canRoleAccessModule(session.user.role, module)) {
+    redirect("/dashboard?access=denied");
+  }
+
   if (!canAccessModule(organization, module)) {
     if (!hasActiveSubscription(organization)) {
       redirect("/billing?expired=1");
     }
     redirect("/billing?upgrade=true");
   }
-  return { organization };
+  return { session, organization };
 }
 
 export function hasRole(userRole: Role | undefined, allowed: Role[]) {

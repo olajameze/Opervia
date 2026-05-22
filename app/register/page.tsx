@@ -1,6 +1,7 @@
 import { RegisterForm } from "@/components/auth/RegisterForm";
 import { createMetadata } from "@/lib/seo";
 import { HERO } from "@/lib/branding";
+import { findValidInviteByToken } from "@/lib/invites";
 
 export const metadata = createMetadata({
   title: HERO.primaryCta,
@@ -8,6 +9,20 @@ export const metadata = createMetadata({
   noIndex: true,
 });
 
-export default function RegisterPage() {
-  return <RegisterForm />;
+export default async function RegisterPage({
+  searchParams,
+}: {
+  searchParams: { invite?: string };
+}) {
+  const invite = searchParams.invite
+    ? await findValidInviteByToken(searchParams.invite)
+    : null;
+
+  return (
+    <RegisterForm
+      inviteToken={searchParams.invite}
+      invitedEmail={invite?.email}
+      organizationName={invite?.organization.name}
+    />
+  );
 }

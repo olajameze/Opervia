@@ -61,6 +61,7 @@ model User {
   memberships   Membership[]
   notifications Notification[]
   auditLogs     AuditLog[]
+  invitesSent   TeamInvite[] @relation("InvitesSent")
 }
 
 enum Role {
@@ -115,6 +116,7 @@ model Organization {
   notifications        Notification[]
   workflowRules        WorkflowRule[]
   auditLogs            AuditLog[]
+  teamInvites          TeamInvite[]
 }
 
 model Membership {
@@ -127,6 +129,23 @@ model Membership {
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([userId, organizationId])
+}
+
+model TeamInvite {
+  id             String       @id @default(cuid())
+  email          String
+  role           Role         @default(VIEWER)
+  token          String       @unique
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  invitedById    String
+  organizationId String
+  createdAt      DateTime     @default(now())
+  invitedBy      User         @relation("InvitesSent", fields: [invitedById], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([email, organizationId])
 }
 
 model Client {

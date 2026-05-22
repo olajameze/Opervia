@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { Organization, Role } from "@prisma/client";
 import { BRAND } from "@/lib/branding";
 import { OperviaLogo } from "@/components/brand/OperviaLogo";
 import { cn } from "@/lib/utils";
 import { getPlanDisplayName, canAccessModule, isOnActiveTrial } from "@/lib/plans";
-import type { Organization } from "@prisma/client";
+import { canRoleAccessModule } from "@/lib/roles";
+import type { AppModule } from "@/lib/plans";
 import {
   LayoutDashboard,
   Package,
@@ -19,9 +21,13 @@ import {
   Settings,
   Lock,
 } from "lucide-react";
-import type { AppModule } from "@/lib/plans";
 
-const navItems: { href: string; label: string; icon: typeof LayoutDashboard; module: AppModule }[] = [
+const navItems: {
+  href: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  module: AppModule;
+}[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, module: "dashboard" },
   { href: "/rentals", label: "Rentals", icon: Package, module: "rentals" },
   { href: "/workforce", label: "Workforce", icon: Users, module: "workforce" },
@@ -32,15 +38,23 @@ const navItems: { href: string; label: string; icon: typeof LayoutDashboard; mod
   { href: "/automations", label: "Automations", icon: Workflow, module: "automations" },
 ];
 
+function isNavVisible(role: Role | undefined, module: AppModule) {
+  return canRoleAccessModule(role, module);
+}
+
 function NavLink({
   item,
   organization,
+  role,
   pathname,
 }: {
   item: (typeof navItems)[number];
   organization: Organization;
+  role?: Role;
   pathname: string;
 }) {
+  if (!isNavVisible(role, item.module)) return null;
+
   const allowed = canAccessModule(organization, item.module);
   const isActive = pathname.startsWith(item.href);
   const isTrialPreview =
@@ -87,7 +101,13 @@ function NavLink({
   );
 }
 
-export function AppSidebar({ organization }: { organization: Organization }) {
+export function AppSidebar({
+  organization,
+  role,
+}: {
+  organization: Organization;
+  role?: Role;
+}) {
   const pathname = usePathname();
   const planLabel = getPlanDisplayName(organization);
   const onTrial = isOnActiveTrial(organization);
@@ -109,6 +129,7 @@ export function AppSidebar({ organization }: { organization: Organization }) {
             key={item.href}
             item={item}
             organization={organization}
+            role={role}
             pathname={pathname}
           />
         ))}
@@ -131,9 +152,18 @@ export function AppSidebar({ organization }: { organization: Organization }) {
   );
 }
 
-export function MobileNav({ organization }: { organization: Organization }) {
+export function MobileNav({
+  organization,
+  role,
+}: {
+  organization: Organization;
+  role?: Role;
+}) {
   const pathname = usePathname();
-  const mobileItems = navItems.filter((item) => canAccessModule(organization, item.module)).slice(0, 5);
+  const mobileItems = navItems
+    .filter((item) => isNavVisible(role, item.module))
+    .filter((item) => canAccessModule(organization, item.module))
+    .slice(0, 5);
 
   return (
     <nav

@@ -17,6 +17,7 @@ const publicRoutes = [
   "/security",
   "/under-maintenance",
   "/account-suspended",
+  "/invite",
   "/api/auth",
   "/api/contact",
   "/api/register",

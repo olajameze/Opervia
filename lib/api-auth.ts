@@ -67,3 +67,27 @@ export async function assertTeamMemberCapacity(organizationId: string) {
 
   return null;
 }
+
+export async function assertMembershipCapacity(organizationId: string) {
+  const organization = await prisma.organization.findUniqueOrThrow({
+    where: { id: organizationId },
+  });
+
+  const { getTeamMemberLimit } = await import("@/lib/entitlements");
+  const limit = getTeamMemberLimit(organization);
+
+  if (limit === null) return null;
+
+  const memberCount = await prisma.membership.count({ where: { organizationId } });
+
+  if (memberCount >= limit) {
+    return NextResponse.json(
+      {
+        error: `Team member limit reached (${limit}). Upgrade to Pro for unlimited team members.`,
+      },
+      { status: 403 }
+    );
+  }
+
+  return null;
+}

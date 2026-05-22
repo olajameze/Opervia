@@ -10,7 +10,17 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { BRAND, HERO } from "@/lib/branding";
 
-export function RegisterForm() {
+type RegisterFormProps = {
+  inviteToken?: string;
+  invitedEmail?: string;
+  organizationName?: string;
+};
+
+export function RegisterForm({
+  inviteToken,
+  invitedEmail,
+  organizationName,
+}: RegisterFormProps) {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -50,16 +60,24 @@ export function RegisterForm() {
       return;
     }
 
-    router.push("/onboarding");
+    if (inviteToken) {
+      router.push(`/invite?token=${inviteToken}`);
+    } else {
+      router.push("/onboarding");
+    }
     router.refresh();
   }
 
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <CardTitle>{HERO.primaryCta}</CardTitle>
+        <CardTitle>
+          {organizationName ? `Join ${organizationName}` : HERO.primaryCta}
+        </CardTitle>
         <CardDescription>
-          {BRAND.trialDays} days free · No credit card required
+          {inviteToken
+            ? `Create your account to accept the team invite.`
+            : `${BRAND.trialDays} days free · No credit card required`}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -70,7 +88,15 @@ export function RegisterForm() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Work email</Label>
-            <Input id="email" name="email" type="email" required placeholder="jane@company.com" />
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              required
+              readOnly={Boolean(invitedEmail)}
+              defaultValue={invitedEmail}
+              placeholder="jane@company.com"
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
@@ -79,7 +105,7 @@ export function RegisterForm() {
           {error && <p className="text-sm text-destructive">{error}</p>}
           <div className="flex justify-center pt-1">
             <Button type="submit" className="min-w-[200px]" disabled={loading}>
-              {loading ? "Creating account..." : HERO.primaryCta}
+              {loading ? "Creating account..." : inviteToken ? "Create account & continue" : HERO.primaryCta}
             </Button>
           </div>
         </form>
@@ -87,7 +113,14 @@ export function RegisterForm() {
       <CardFooter className="text-sm text-center">
         <p>
           Already have an account?{" "}
-          <Link href="/login" className="text-primary hover:underline">
+          <Link
+            href={
+              inviteToken
+                ? `/login?callbackUrl=${encodeURIComponent(`/invite?token=${inviteToken}`)}`
+                : "/login"
+            }
+            className="text-primary hover:underline"
+          >
             Sign in
           </Link>
         </p>
