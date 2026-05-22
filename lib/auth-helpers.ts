@@ -16,8 +16,26 @@ export async function requireAuth() {
 
 export async function requireOrganization() {
   const session = await requireAuth();
-  if (!session.user.organizationId) redirect("/onboarding");
-  return session;
+  if (session.user.organizationId) return session;
+
+  // JWT can lag right after onboarding — resolve membership from the database.
+  const membership = await prisma.membership.findFirst({
+    where: { userId: session.user.id },
+    include: { organization: true },
+    orderBy: { createdAt: "asc" },
+  });
+
+  if (!membership) redirect("/onboarding");
+
+  return {
+    ...session,
+    user: {
+      ...session.user,
+      organizationId: membership.organizationId,
+      role: membership.role,
+      organizationName: membership.organization.name,
+    },
+  };
 }
 
 export async function getOrganizationContext() {

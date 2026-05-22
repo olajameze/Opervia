@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +9,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { BRAND } from "@/lib/branding";
 
 export function OnboardingForm() {
-  const router = useRouter();
   const { update } = useSession();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -35,8 +33,7 @@ export function OnboardingForm() {
     }
 
     await update();
-    router.push("/dashboard");
-    router.refresh();
+    window.location.assign("/dashboard");
   }
 
   return (
