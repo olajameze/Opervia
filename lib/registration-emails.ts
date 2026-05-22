@@ -12,7 +12,7 @@ export function emailVerifyIdentifier(email: string) {
 
 export function getSignupNotifyEmail() {
   return (
-    process.env.OPERIVIA_SIGNUP_NOTIFY_EMAIL?.trim() ||
+    process.env.OPERVIA_SIGNUP_NOTIFY_EMAIL?.trim() ||
     process.env.RESEND_TEST_TO?.trim() ||
     BRAND.supportEmail
   );

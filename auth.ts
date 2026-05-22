@@ -61,7 +61,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           Google({
             clientId: process.env.AUTH_GOOGLE_ID,
             clientSecret: process.env.AUTH_GOOGLE_SECRET,
-            allowDangerousEmailAccountLinking: true,
           }),
         ]
       : []),
@@ -74,8 +73,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
+        const email = (credentials.email as string).trim().toLowerCase();
+
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email as string },
+          where: { email },
         });
 
         if (!user?.passwordHash) return null;
@@ -116,11 +117,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async signIn({ user, account }) {
       if (account?.provider === "credentials" && user.email) {
         const dbUser = await prisma.user.findUnique({
-          where: { email: user.email },
-          select: { emailVerified: true, id: true },
+          where: { email: user.email.trim().toLowerCase() },
+          select: { emailVerified: true, id: true, frozenAt: true },
         });
 
-        if (!dbUser) return false;
+        if (!dbUser || dbUser.frozenAt) return false;
 
         if (!dbUser.emailVerified) {
           const hasMembership = await prisma.membership.findFirst({
@@ -129,6 +130,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           });
           if (!hasMembership) return false;
         }
+      }
+
+      if (user.id) {
+        const frozenMembership = await prisma.membership.findFirst({
+          where: {
+            userId: user.id,
+            organization: { frozenAt: { not: null } },
+          },
+          select: { id: true },
+        });
+        if (frozenMembership) return false;
       }
 
       return true;

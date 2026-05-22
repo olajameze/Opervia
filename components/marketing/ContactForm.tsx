@@ -5,16 +5,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { HoneypotField, HONEYPOT_FIELD } from "@/components/security/HoneypotField";
+import { TurnstileWidget, isTurnstileEnabled } from "@/components/security/TurnstileWidget";
 
 export function ContactForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError("");
+
+    if (isTurnstileEnabled() && !turnstileToken) {
+      setError("Complete the security check before sending.");
+      setLoading(false);
+      return;
+    }
 
     const form = e.currentTarget;
     const data = new FormData(form);
@@ -29,6 +38,8 @@ export function ContactForm() {
         phone: data.get("phone"),
         subject: data.get("subject"),
         message: data.get("message"),
+        [HONEYPOT_FIELD]: data.get(HONEYPOT_FIELD),
+        turnstileToken,
       }),
     });
 
@@ -62,7 +73,8 @@ export function ContactForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+    <form onSubmit={handleSubmit} className="relative space-y-4" noValidate>
+      <HoneypotField />
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="name">
@@ -121,6 +133,7 @@ export function ContactForm() {
           {error}
         </p>
       )}
+      <TurnstileWidget onTokenChange={setTurnstileToken} />
       <div className="flex justify-end pt-1">
         <Button type="submit" className="min-w-[200px]" disabled={loading}>
           {loading ? "Sending..." : "Send message"}

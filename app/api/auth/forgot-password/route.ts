@@ -5,21 +5,46 @@ import { prisma } from "@/lib/db";
 import { sendEmail, requireEmailForTransactional } from "@/lib/email";
 import { BRAND } from "@/lib/branding";
 import { getAppUrl } from "@/lib/app-url";
+import { HONEYPOT_FIELD } from "@/lib/security/honeypot";
+import { guardPublicForm } from "@/lib/security/public-form-guard";
+import { ipAndIdentifierRateLimit } from "@/lib/security/rate-limit";
 
 const schema = z.object({
   email: z.string().email(),
+  [HONEYPOT_FIELD]: z.string().optional(),
+  turnstileToken: z.string().optional(),
 });
 
 const TOKEN_TTL_MS = 60 * 60 * 1000;
 
 export async function POST(req: Request) {
-  let email: string;
+  let body: unknown;
   try {
-    const body = schema.parse(await req.json());
-    email = body.email.toLowerCase();
+    body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid email" }, { status: 400 });
   }
+
+  const blocked = await guardPublicForm({
+    req,
+    action: "forgot-password",
+    body: (body ?? {}) as Record<string, unknown>,
+    ipLimit: { limit: 10, windowMs: 60 * 60 * 1000 },
+  });
+  if (blocked) return blocked;
+
+  let email: string;
+  try {
+    email = schema.parse(body).email.toLowerCase();
+  } catch {
+    return NextResponse.json({ error: "Invalid email" }, { status: 400 });
+  }
+
+  const rateLimited = ipAndIdentifierRateLimit(req, "forgot-password", email, {
+    ip: { limit: 10, windowMs: 60 * 60 * 1000 },
+    id: { limit: 3, windowMs: 60 * 60 * 1000 },
+  });
+  if (rateLimited) return rateLimited;
 
   const user = await prisma.user.findUnique({ where: { email } });
 

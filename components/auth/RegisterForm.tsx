@@ -10,6 +10,8 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { BRAND, HERO } from "@/lib/branding";
+import { HoneypotField, HONEYPOT_FIELD } from "@/components/security/HoneypotField";
+import { TurnstileWidget, isTurnstileEnabled } from "@/components/security/TurnstileWidget";
 
 type RegisterFormProps = {
   inviteToken?: string;
@@ -25,11 +27,18 @@ export function RegisterForm({
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError("");
+
+    if (isTurnstileEnabled() && !turnstileToken) {
+      setError("Complete the security check before continuing.");
+      setLoading(false);
+      return;
+    }
 
     const form = new FormData(e.currentTarget);
     const res = await fetch("/api/register", {
@@ -39,6 +48,8 @@ export function RegisterForm({
         name: form.get("name"),
         email: form.get("email"),
         password: form.get("password"),
+        [HONEYPOT_FIELD]: form.get(HONEYPOT_FIELD),
+        turnstileToken,
       }),
     });
 
@@ -92,7 +103,8 @@ export function RegisterForm({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="relative space-y-4">
+          <HoneypotField />
           <div className="space-y-2">
             <Label htmlFor="name">Full name</Label>
             <Input id="name" name="name" required placeholder="Jane Smith" />
@@ -112,7 +124,11 @@ export function RegisterForm({
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <PasswordInput id="password" name="password" required minLength={8} />
+            <p className="text-xs text-muted-foreground">
+              At least 8 characters with letters and numbers.
+            </p>
           </div>
+          <TurnstileWidget onTokenChange={setTurnstileToken} />
           {error && <p className="text-sm text-destructive">{error}</p>}
           <div className="flex justify-center pt-1">
             <Button type="submit" className="min-w-[200px]" disabled={loading}>

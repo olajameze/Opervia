@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { getResendApiKey } from "@/lib/resend-config";
 
 let cachedResend: Resend | null = null;
 let cachedApiKey: string | null = null;
@@ -10,7 +11,7 @@ export function resetResendClient() {
 }
 
 export function getResend(): Resend {
-  const apiKey = process.env.RESEND_API_KEY?.trim();
+  const apiKey = getResendApiKey();
   if (!apiKey) {
     throw new Error("RESEND_API_KEY is not set");
   }

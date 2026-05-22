@@ -3,60 +3,115 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 import { normalizeInviteEmail } from "@/lib/invites";
-import { sendSignupEmailsForNewUser } from "@/lib/registration-emails";
+import {
+  createEmailVerificationToken,
+  sendEmailVerificationEmail,
+  sendSignupEmailsForNewUser,
+} from "@/lib/registration-emails";
+import { isDisposableEmail } from "@/lib/security/disposable-email";
+import { HONEYPOT_FIELD } from "@/lib/security/honeypot";
+import { guardPublicForm } from "@/lib/security/public-form-guard";
+import { passwordSchema } from "@/lib/security/password";
+import { ipAndIdentifierRateLimit } from "@/lib/security/rate-limit";
+import { isReservedSuperAdminEmail } from "@/lib/super-admin";
 
 const registerSchema = z.object({
-  name: z.string().min(1),
-  email: z.string().email(),
-  password: z.string().min(8),
+  name: z.string().trim().min(1).max(120),
+  email: z.string().trim().email().max(200),
+  password: passwordSchema,
+  [HONEYPOT_FIELD]: z.string().optional(),
+  turnstileToken: z.string().optional(),
 });
 
+function genericRegisterResponse(requiresEmailVerification = true) {
+  return NextResponse.json({ ok: true, requiresEmailVerification });
+}
+
 export async function POST(req: Request) {
+  let body: unknown;
   try {
-    const body = await req.json();
-    const { name, email, password } = registerSchema.parse(body);
-    const normalizedEmail = email.trim().toLowerCase();
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
 
-    const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
-    if (existing) {
-      return NextResponse.json({ error: "Email already registered" }, { status: 400 });
-    }
+  const blocked = await guardPublicForm({
+    req,
+    action: "register",
+    body: (body ?? {}) as Record<string, unknown>,
+    ipLimit: { limit: 10, windowMs: 60 * 60 * 1000 },
+  });
+  if (blocked) return blocked;
 
-    const pendingInvite = await prisma.teamInvite.findFirst({
-      where: {
-        email: normalizeInviteEmail(normalizedEmail),
-        acceptedAt: null,
-        expiresAt: { gt: new Date() },
-      },
-    });
-
-    const passwordHash = await bcrypt.hash(password, 12);
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email: normalizedEmail,
-        passwordHash,
-        ...(pendingInvite ? { emailVerified: new Date() } : {}),
-      },
-    });
-
-    await sendSignupEmailsForNewUser({
-      userId: user.id,
-      email: normalizedEmail,
-      name,
-      skipVerification: Boolean(pendingInvite),
-    });
-
-    return NextResponse.json({
-      id: user.id,
-      email: user.email,
-      requiresEmailVerification: !pendingInvite,
-      emailVerified: Boolean(pendingInvite),
-    });
+  let parsed: z.infer<typeof registerSchema>;
+  try {
+    parsed = registerSchema.parse(body);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 });
+      return NextResponse.json(
+        { error: error.errors[0]?.message ?? "Invalid registration" },
+        { status: 400 }
+      );
     }
-    return NextResponse.json({ error: "Registration failed" }, { status: 500 });
+    return NextResponse.json({ error: "Invalid registration" }, { status: 400 });
   }
+
+  const normalizedEmail = parsed.email.trim().toLowerCase();
+
+  const rateLimited = ipAndIdentifierRateLimit(req, "register", normalizedEmail, {
+    ip: { limit: 10, windowMs: 60 * 60 * 1000 },
+    id: { limit: 3, windowMs: 60 * 60 * 1000 },
+  });
+  if (rateLimited) return rateLimited;
+
+  if (isReservedSuperAdminEmail(normalizedEmail)) {
+    return genericRegisterResponse(true);
+  }
+
+  if (isDisposableEmail(normalizedEmail)) {
+    return NextResponse.json(
+      { error: "Please use a permanent work email address." },
+      { status: 400 }
+    );
+  }
+
+  const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+  if (existing) {
+    if (!existing.emailVerified && !existing.frozenAt) {
+      const token = await createEmailVerificationToken(normalizedEmail);
+      await sendEmailVerificationEmail({
+        email: normalizedEmail,
+        name: existing.name ?? parsed.name,
+        token,
+      });
+    }
+    return genericRegisterResponse(true);
+  }
+
+  const pendingInvite = await prisma.teamInvite.findFirst({
+    where: {
+      email: normalizeInviteEmail(normalizedEmail),
+      acceptedAt: null,
+      expiresAt: { gt: new Date() },
+    },
+  });
+
+  const passwordHash = await bcrypt.hash(parsed.password, 12);
+  const user = await prisma.user.create({
+    data: {
+      name: parsed.name,
+      email: normalizedEmail,
+      passwordHash,
+      ...(pendingInvite ? { emailVerified: new Date() } : {}),
+    },
+  });
+
+  await sendSignupEmailsForNewUser({
+    userId: user.id,
+    email: normalizedEmail,
+    name: parsed.name,
+    skipVerification: Boolean(pendingInvite),
+  });
+
+  return genericRegisterResponse(!pendingInvite);
 }

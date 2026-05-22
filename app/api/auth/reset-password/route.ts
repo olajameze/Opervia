@@ -2,13 +2,17 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { passwordSchema } from "@/lib/security/password";
+import { ipRateLimit } from "@/lib/security/rate-limit";
 
 const schema = z.object({
   token: z.string().min(1),
-  password: z.string().min(8),
+  password: passwordSchema,
 });
 
 export async function POST(req: Request) {
+  const rateLimited = ipRateLimit(req, "reset-password", 15, 60 * 60 * 1000);
+  if (rateLimited) return rateLimited;
   let body: z.infer<typeof schema>;
   try {
     body = schema.parse(await req.json());

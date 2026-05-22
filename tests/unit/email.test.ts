@@ -80,6 +80,17 @@ describe("email", () => {
     expect(() => validateProductionEmailConfig()).toThrow(/RESEND_API_KEY/);
   });
 
+  it("throws during production startup for placeholder API keys", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("VERCEL_ENV", "production");
+    vi.stubEnv("RESEND_API_KEY", "re_xxxxxxxxx");
+    vi.stubEnv("RESEND_FROM", "onboarding@resend.dev");
+
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    expect(() => validateProductionEmailConfig()).toThrow(/RESEND_API_KEY/);
+  });
+
   it("warns but does not throw outside strict validation", () => {
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("VERCEL_ENV", "production");

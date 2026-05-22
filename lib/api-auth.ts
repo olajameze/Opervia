@@ -12,9 +12,20 @@ import {
 
 export async function requireApiOrganization(module?: AppModule) {
   const session = await auth();
-  if (!session?.user?.organizationId) {
+  if (!session?.user?.id || !session.user.organizationId) {
     return {
       error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+    };
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { frozenAt: true },
+  });
+
+  if (user?.frozenAt) {
+    return {
+      error: NextResponse.json({ error: "Account suspended" }, { status: 403 }),
     };
   }
 
@@ -25,6 +36,12 @@ export async function requireApiOrganization(module?: AppModule) {
   if (!organization) {
     return {
       error: NextResponse.json({ error: "Organization not found" }, { status: 404 }),
+    };
+  }
+
+  if (organization.frozenAt) {
+    return {
+      error: NextResponse.json({ error: "Organization suspended" }, { status: 403 }),
     };
   }
 

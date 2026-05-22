@@ -11,6 +11,10 @@ export function superAdminEmails(): string[] {
   );
 }
 
+export function isReservedSuperAdminEmail(email: string): boolean {
+  return superAdminEmails().includes(email.trim().toLowerCase());
+}
+
 export async function isSuperAdminUser(userId: string): Promise<boolean> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
