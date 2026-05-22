@@ -1,4 +1,5 @@
 import { BRAND } from "@/lib/branding";
+import { getResend } from "@/lib/resend-client";
 
 export type SendEmailInput = {
   to: string | string[];
@@ -77,40 +78,31 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
     return { ok: true, dev: true };
   }
 
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-    "Content-Type": "application/json",
-  };
+  try {
+    const resend = getResend();
+    const { data, error } = await resend.emails.send(
+      {
+        from: process.env.RESEND_FROM!,
+        to: Array.isArray(input.to) ? input.to : [input.to],
+        subject: input.subject,
+        text: input.text,
+        html: input.html,
+        replyTo: input.replyTo,
+      },
+      input.idempotencyKey ? { idempotencyKey: input.idempotencyKey } : undefined
+    );
 
-  if (input.idempotencyKey) {
-    headers["Idempotency-Key"] = input.idempotencyKey;
+    if (error) {
+      console.error(`[${BRAND.name}] Email send failed`, { error: error.message, subject: input.subject });
+      return { ok: false, error: error.message };
+    }
+
+    return { ok: true, id: data?.id };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Resend send failed";
+    console.error(`[${BRAND.name}] Email send failed`, { error: message, subject: input.subject });
+    return { ok: false, error: message };
   }
-
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers,
-    body: JSON.stringify({
-      from: process.env.RESEND_FROM,
-      to: Array.isArray(input.to) ? input.to : [input.to],
-      subject: input.subject,
-      text: input.text,
-      html: input.html,
-      reply_to: input.replyTo,
-    }),
-  });
-
-  const body = (await response.json().catch(() => ({}))) as {
-    id?: string;
-    message?: string;
-  };
-
-  if (!response.ok) {
-    const error = body.message ?? `Resend API error (${response.status})`;
-    console.error(`[${BRAND.name}] Email send failed`, { error, subject: input.subject });
-    return { ok: false, error };
-  }
-
-  return { ok: true, id: body.id };
 }
 
 export function requireEmailForTransactional(context: string): Extract<SendEmailResult, { ok: false }> | null {
