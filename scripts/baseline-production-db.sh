@@ -31,10 +31,7 @@ if [[ "$DATABASE_URL" == *"your-vercel-production-database-url"* ]] \
   exit 1
 fi
 
-echo "Baselining existing database with migration 20250522120000_init..."
-npx prisma migrate resolve --applied 20250522120000_init
-
-echo "Applying pending migrations..."
-npx prisma migrate deploy
+echo "Applying migrations (auto-baselines brownfield databases if needed)..."
+bash scripts/migrate-deploy.sh
 
 echo "Production database is baselined and up to date."
