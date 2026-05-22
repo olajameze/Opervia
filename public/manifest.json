@@ -4,8 +4,8 @@
   "description": "Run Your Entire Operation From One Platform",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#2563EB",
+  "background_color": "#F8FAFC",
+  "theme_color": "#0D9488",
   "icons": [
     {
       "src": "/icon-192.png",

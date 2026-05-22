@@ -15,10 +15,10 @@ import {
 import { CheckCircle2 } from "lucide-react";
 
 const socialProof = [
-  "Trusted by 200+ operations teams",
+  "Built for European operations teams",
   "GDPR compliant",
-  "SOC 2 ready infrastructure",
-  "99.9% uptime SLA",
+  "Enterprise-grade infrastructure",
+  "5-day free trial",
 ];
 
 export default function HomePage() {

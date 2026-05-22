@@ -1,8 +1,14 @@
 import { auth } from "@/auth";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
-import type { Role } from "@prisma/client";
-import { canAccessModule, type AppModule } from "@/lib/entitlements";
+import type { Organization, Role } from "@prisma/client";
+import {
+  canAccessModule,
+  hasActiveSubscription,
+  INACTIVE_SUBSCRIPTION_PATHS,
+  type AppModule,
+} from "@/lib/entitlements";
 
 export async function getSession() {
   return auth();
@@ -48,9 +54,28 @@ export async function getOrganizationContext() {
   return { session, organization };
 }
 
+/** Redirect to billing when subscription is inactive and the route is not allowed. */
+export function enforceSubscriptionAccess(
+  organization: Pick<Organization, "subscriptionStatus" | "trialEndsAt">
+) {
+  if (hasActiveSubscription(organization)) return;
+
+  const pathname = headers().get("x-pathname") ?? "";
+  const allowed = INACTIVE_SUBSCRIPTION_PATHS.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`)
+  );
+
+  if (!allowed) {
+    redirect("/billing?expired=1");
+  }
+}
+
 export async function requireModuleAccess(module: AppModule) {
   const { organization } = await getOrganizationContext();
   if (!canAccessModule(organization, module)) {
+    if (!hasActiveSubscription(organization)) {
+      redirect("/billing?expired=1");
+    }
     redirect("/billing?upgrade=true");
   }
   return { organization };

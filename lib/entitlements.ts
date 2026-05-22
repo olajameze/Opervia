@@ -10,6 +10,8 @@ import {
   isOnActiveTrial,
   getTrialDaysRemaining,
   isTrialEndingSoon,
+  isTrialExpired,
+  INACTIVE_SUBSCRIPTION_PATHS,
   type AppModule,
 } from "./plans";
 
@@ -37,4 +39,6 @@ export {
   isOnActiveTrial,
   getTrialDaysRemaining,
   isTrialEndingSoon,
+  isTrialExpired,
+  INACTIVE_SUBSCRIPTION_PATHS,
 };

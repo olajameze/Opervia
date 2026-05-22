@@ -1,4 +1,4 @@
-import type { Organization, SubscriptionPlan, SubscriptionStatus } from "@prisma/client";
+import type { Organization, SubscriptionPlan } from "@prisma/client";
 
 export type { SubscriptionPlan };
 
@@ -136,6 +136,20 @@ export function hasActiveSubscription(
   return false;
 }
 
+/** Trial period ended without an active paid subscription. */
+export function isTrialExpired(
+  org: Pick<Organization, "subscriptionStatus" | "trialEndsAt">
+): boolean {
+  return (
+    org.subscriptionStatus === "TRIALING" &&
+    org.trialEndsAt != null &&
+    org.trialEndsAt <= new Date()
+  );
+}
+
+/** Routes reachable when subscription is inactive (expired trial, canceled, etc.). */
+export const INACTIVE_SUBSCRIPTION_PATHS = ["/billing", "/settings"] as const;
+
 export function getEffectivePlan(
   org: Pick<Organization, "subscriptionStatus" | "subscriptionPlan" | "trialEndsAt">
 ): SubscriptionPlan {
@@ -211,7 +225,7 @@ export function pathToModule(pathname: string): AppModule | null {
 }
 
 export function subscriptionIsWritable(
-  status: SubscriptionStatus | null | undefined
+  org: Pick<Organization, "subscriptionStatus" | "trialEndsAt">
 ): boolean {
-  return status === "ACTIVE" || status === "TRIALING";
+  return hasActiveSubscription(org);
 }

@@ -16,7 +16,7 @@ import { InvoiceForm, PaymentForm, StatusSelect } from "@/components/app/ModuleF
 
 import { BRAND } from "@/lib/branding";
 
-import { getEffectivePlan, getPlanDisplayName, isOnActiveTrial, getTrialDaysRemaining } from "@/lib/entitlements";
+import { getEffectivePlan, getPlanDisplayName, hasActiveSubscription, isOnActiveTrial, getTrialDaysRemaining } from "@/lib/entitlements";
 
 import { PLANS } from "@/lib/plans";
 
@@ -32,6 +32,7 @@ export default async function BillingPage() {
 
   const plan = getEffectivePlan(organization);
   const onTrial = isOnActiveTrial(organization);
+  const canEdit = hasActiveSubscription(organization);
   const trialDays = onTrial ? getTrialDaysRemaining(organization) : null;
 
 
@@ -116,6 +117,12 @@ export default async function BillingPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
+            {!canEdit && (
+              <p className="text-muted-foreground pb-1">
+                Your trial has ended. Subscribe below to restore editing across {BRAND.name}.
+                Invoice and payment history remains visible below.
+              </p>
+            )}
             {onTrial && (
               <p className="text-muted-foreground pb-1">
                 Trial includes Starter features plus Logistics and Analytics previews. Subscribe
@@ -194,25 +201,18 @@ export default async function BillingPage() {
 
 
 
-      <div className="grid gap-4 lg:grid-cols-2">
-
-        <InvoiceForm />
-
-        <PaymentForm
-
-          invoices={payableInvoices.map((i) => ({
-
-            id: i.id,
-
-            number: i.number,
-
-            amount: i.amount,
-
-          }))}
-
-        />
-
-      </div>
+      {canEdit ? (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <InvoiceForm />
+          <PaymentForm
+            invoices={payableInvoices.map((i) => ({
+              id: i.id,
+              number: i.number,
+              amount: i.amount,
+            }))}
+          />
+        </div>
+      ) : null}
 
 
 
@@ -258,21 +258,24 @@ export default async function BillingPage() {
 
               header: "Status",
 
-              render: (row) => (
-                <StatusSelect
-                  endpoint={`/api/invoices/${row.id as string}`}
-                  field="status"
-                  label="Update invoice status"
-                  value={String(row.status)}
-                  options={[
-                    { value: "DRAFT", label: "Draft" },
-                    { value: "SENT", label: "Sent" },
-                    { value: "PAID", label: "Paid" },
-                    { value: "OVERDUE", label: "Overdue" },
-                    { value: "CANCELLED", label: "Cancelled" },
-                  ]}
-                />
-              ),
+              render: (row) =>
+                canEdit ? (
+                  <StatusSelect
+                    endpoint={`/api/invoices/${row.id as string}`}
+                    field="status"
+                    label="Update invoice status"
+                    value={String(row.status)}
+                    options={[
+                      { value: "DRAFT", label: "Draft" },
+                      { value: "SENT", label: "Sent" },
+                      { value: "PAID", label: "Paid" },
+                      { value: "OVERDUE", label: "Overdue" },
+                      { value: "CANCELLED", label: "Cancelled" },
+                    ]}
+                  />
+                ) : (
+                  <Badge variant="outline">{String(row.status)}</Badge>
+                ),
 
             },
 

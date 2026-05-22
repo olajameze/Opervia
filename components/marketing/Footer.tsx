@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BRAND } from "@/lib/branding";
+import { OperviaLogo } from "@/components/brand/OperviaLogo";
 import { Separator } from "@/components/ui/separator";
 
 const footerLinks = {
@@ -25,10 +26,8 @@ export function Footer() {
       <div className="container mx-auto px-4 py-12 md:px-6">
         <div className="grid gap-8 md:grid-cols-4">
           <div className="space-y-3">
-            <div className="flex items-center gap-2 font-semibold text-lg">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-bold">
-                O
-              </span>
+            <div className="flex items-center gap-2.5 font-semibold text-lg text-opervia-brand">
+              <OperviaLogo size={32} />
               {BRAND.name}
             </div>
             <p className="text-sm text-muted-foreground max-w-xs">

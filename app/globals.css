@@ -4,44 +4,83 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Opervia Slate + Teal */
+    --background: 210 40% 98%;
+    --foreground: 222.2 47.4% 11.2%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
+    --card-foreground: 222.2 47.4% 11.2%;
+    --primary: 175 84% 32%;
+    --primary-hover: 173 80% 40%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 214 32% 91%;
     --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 166 76% 97%;
     --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 32 95% 44%;
+    --warning-foreground: 0 0% 100%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 175 84% 32%;
     --radius: 0.625rem;
+
+    /* Named brand tokens */
+    --opervia-brand: 222.2 47.4% 11.2%;
+    --opervia-accent: 175 84% 32%;
+    --opervia-accent-light: 173 80% 40%;
+    --opervia-surface: 210 40% 98%;
+    --opervia-success: 142 76% 36%;
+    --opervia-warning: 32 95% 44%;
+    --opervia-destructive: 0 72% 51%;
+
+    /* App sidebar (slate shell) */
+    --sidebar: 222.2 47.4% 11.2%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-muted: 215 20% 65%;
+    --sidebar-border: 217 33% 17%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-primary: 175 84% 32%;
+    --sidebar-primary-foreground: 0 0% 100%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 222.2 47.4% 11.2%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    --card: 217 33% 17%;
     --card-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
+    --primary: 173 80% 40%;
+    --primary-hover: 168 76% 50%;
     --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 217 33% 17%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 217 33% 17%;
     --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 62% 45%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --success: 142 70% 45%;
+    --success-foreground: 222.2 47.4% 11.2%;
+    --warning: 32 95% 44%;
+    --warning-foreground: 222.2 47.4% 11.2%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 173 80% 40%;
+
+    --sidebar: 222.2 47.4% 8%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-muted: 215 20% 65%;
+    --sidebar-border: 217 33% 17%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-primary: 173 80% 40%;
+    --sidebar-primary-foreground: 222.2 47.4% 11.2%;
   }
 }
 
@@ -57,5 +96,13 @@
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  .opervia-hero-mesh {
+    background-color: hsl(var(--opervia-surface));
+    background-image:
+      radial-gradient(ellipse 80% 60% at 50% -10%, hsl(166 76% 92% / 0.55), transparent),
+      radial-gradient(ellipse 50% 40% at 90% 10%, hsl(175 84% 32% / 0.08), transparent),
+      radial-gradient(ellipse 40% 35% at 10% 20%, hsl(222 47% 11% / 0.04), transparent);
   }
 }

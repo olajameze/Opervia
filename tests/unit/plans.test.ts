@@ -6,6 +6,9 @@ import {
   getTeamMemberLimit,
   formatTeamMemberLimit,
   isTeamMemberLimitReached,
+  isTrialExpired,
+  subscriptionIsWritable,
+  INACTIVE_SUBSCRIPTION_PATHS,
   PLANS,
 } from "@/lib/plans";
 
@@ -81,5 +84,14 @@ describe("entitlements", () => {
     expect(hasActiveSubscription(expiredOrg)).toBe(false);
     expect(canAccessModule(expiredOrg, "billing")).toBe(true);
     expect(canAccessModule(expiredOrg, "rentals")).toBe(false);
+  });
+
+  it("identifies expired trial state", () => {
+    expect(isTrialExpired(expiredOrg)).toBe(true);
+    expect(isTrialExpired(trialingOrg)).toBe(false);
+    expect(subscriptionIsWritable(expiredOrg)).toBe(false);
+    expect(subscriptionIsWritable(starterOrg)).toBe(true);
+    expect(INACTIVE_SUBSCRIPTION_PATHS).toContain("/billing");
+    expect(INACTIVE_SUBSCRIPTION_PATHS).toContain("/settings");
   });
 });

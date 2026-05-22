@@ -19,6 +19,7 @@ const config: Config = {
         foreground: "hsl(var(--foreground))",
         primary: {
           DEFAULT: "hsl(var(--primary))",
+          hover: "hsl(var(--primary-hover))",
           foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
@@ -28,6 +29,14 @@ const config: Config = {
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
+        },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
         },
         muted: {
           DEFAULT: "hsl(var(--muted))",
@@ -41,11 +50,24 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        sidebar: {
+          DEFAULT: "hsl(var(--sidebar))",
+          foreground: "hsl(var(--sidebar-foreground))",
+          muted: "hsl(var(--sidebar-muted))",
+          border: "hsl(var(--sidebar-border))",
+          accent: "hsl(var(--sidebar-accent))",
+          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
+          primary: "hsl(var(--sidebar-primary))",
+          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
+        },
         opervia: {
-          brand: "#0F172A",
-          accent: "#2563EB",
-          success: "#16A34A",
-          warning: "#D97706",
+          brand: "hsl(var(--opervia-brand))",
+          accent: "hsl(var(--opervia-accent))",
+          "accent-light": "hsl(var(--opervia-accent-light))",
+          surface: "hsl(var(--opervia-surface))",
+          success: "hsl(var(--opervia-success))",
+          warning: "hsl(var(--opervia-warning))",
+          destructive: "hsl(var(--opervia-destructive))",
         },
       },
       borderRadius: {

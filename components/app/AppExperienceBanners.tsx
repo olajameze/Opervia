@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, Sparkles, Clock, ChevronRight } from "lucide-react";
+import { X, Sparkles, Clock, ChevronRight, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LinkButton } from "@/components/ui/link-button";
 import { BRAND } from "@/lib/branding";
@@ -36,6 +36,7 @@ type AppExperienceBannersProps = {
   userName: string | null;
   trialDaysRemaining: number | null;
   showTrialEnding: boolean;
+  subscriptionInactive?: boolean;
 };
 
 function welcomeStorageKey(userId: string) {
@@ -57,6 +58,7 @@ export function AppExperienceBanners({
   userName,
   trialDaysRemaining,
   showTrialEnding,
+  subscriptionInactive = false,
 }: AppExperienceBannersProps) {
   const [showWelcome, setShowWelcome] = useState(false);
   const [showEnding, setShowEnding] = useState(false);
@@ -85,14 +87,39 @@ export function AppExperienceBanners({
     setShowEnding(false);
   }
 
-  if (!showWelcome && !showEnding) return null;
+  if (!showWelcome && !showEnding && !subscriptionInactive) return null;
 
   const trialEndingLabel =
     trialDaysRemaining !== null ? formatTrialEndingLabel(trialDaysRemaining) : null;
 
   return (
     <div className="border-b bg-muted/30 px-4 md:px-6 py-4 space-y-3">
-      {showTrialEnding && showEnding && trialEndingLabel && (
+      {subscriptionInactive && (
+        <div
+          className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 dark:border-red-800 dark:bg-red-950/40"
+          role="alert"
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex gap-3">
+              <Lock className="h-5 w-5 shrink-0 text-red-700 dark:text-red-400 mt-0.5" />
+              <div>
+                <p className="font-medium text-red-950 dark:text-red-100">
+                  Your trial has ended
+                </p>
+                <p className="text-sm text-red-800 dark:text-red-200/90 mt-0.5">
+                  Subscribe to restore full access. Your data is safe — you can review billing
+                  and settings, but editing is paused until you choose a plan.
+                </p>
+              </div>
+            </div>
+            <LinkButton href="/billing" size="sm" className="shrink-0">
+              Choose a plan
+            </LinkButton>
+          </div>
+        </div>
+      )}
+
+      {!subscriptionInactive && showTrialEnding && showEnding && trialEndingLabel && (
         <div
           className="relative rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 pr-10 dark:border-amber-800 dark:bg-amber-950/40"
           role="alert"
@@ -124,7 +151,7 @@ export function AppExperienceBanners({
         </div>
       )}
 
-      {showWelcome && (
+      {!subscriptionInactive && showWelcome && (
         <div
           className="relative rounded-lg border bg-background px-4 py-4 pr-10 shadow-sm"
           role="dialog"

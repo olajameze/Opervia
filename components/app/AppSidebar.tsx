@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BRAND } from "@/lib/branding";
+import { OperviaLogo } from "@/components/brand/OperviaLogo";
 import { cn } from "@/lib/utils";
-import { PLANS, type AppModule, getPlanDisplayName, canAccessModule, isOnActiveTrial } from "@/lib/plans";
+import { getPlanDisplayName, canAccessModule, isOnActiveTrial } from "@/lib/plans";
 import type { Organization } from "@prisma/client";
 import {
   LayoutDashboard,
@@ -18,6 +19,7 @@ import {
   Settings,
   Lock,
 } from "lucide-react";
+import type { AppModule } from "@/lib/plans";
 
 const navItems: { href: string; label: string; icon: typeof LayoutDashboard; module: AppModule }[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, module: "dashboard" },
@@ -49,10 +51,10 @@ function NavLink({
   const className = cn(
     "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
     isActive
-      ? "bg-primary text-primary-foreground"
+      ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
       : allowed
-        ? "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-        : "text-muted-foreground/60 hover:bg-accent/50"
+        ? "text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+        : "text-sidebar-muted/60 hover:bg-sidebar-accent/50"
   );
 
   const label = (
@@ -91,14 +93,12 @@ export function AppSidebar({ organization }: { organization: Organization }) {
   const onTrial = isOnActiveTrial(organization);
 
   return (
-    <aside className="hidden md:flex w-64 flex-col border-r bg-muted/20 min-h-screen">
-      <div className="flex h-16 items-center gap-2 border-b px-6">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-bold">
-          O
-        </span>
+    <aside className="hidden md:flex w-64 flex-col border-r border-sidebar-border bg-sidebar min-h-screen text-sidebar-foreground">
+      <div className="flex h-16 items-center gap-2.5 border-b border-sidebar-border px-6">
+        <OperviaLogo size={32} variant="sidebar" />
         <div>
           <span className="font-semibold block">{BRAND.name}</span>
-          <span className="text-xs text-muted-foreground">
+          <span className="text-xs text-sidebar-muted">
             {onTrial ? "Starter + Pro preview" : `${planLabel} plan`}
           </span>
         </div>
@@ -113,14 +113,14 @@ export function AppSidebar({ organization }: { organization: Organization }) {
           />
         ))}
       </nav>
-      <div className="p-4 border-t space-y-1">
+      <div className="p-4 border-t border-sidebar-border space-y-1">
         <Link
           href="/settings"
           className={cn(
             "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
             pathname.startsWith("/settings")
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:bg-accent"
+              ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
+              : "text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
           )}
         >
           <Settings className="h-4 w-4" />
@@ -148,7 +148,7 @@ export function MobileNav({ organization }: { organization: Organization }) {
             href={item.href}
             className={cn(
               "flex-1 flex flex-col items-center gap-1 py-2 text-xs",
-              isActive ? "text-primary" : "text-muted-foreground"
+              isActive ? "text-primary font-medium" : "text-muted-foreground"
             )}
           >
             <item.icon className="h-4 w-4" />

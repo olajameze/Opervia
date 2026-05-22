@@ -22,7 +22,7 @@ export function SatisfactionBanner() {
 
   return (
     <div
-      className="fixed top-0 left-0 right-0 z-[100] bg-green-600 text-white text-center text-xs py-1 font-medium hidden md:flex items-center justify-center gap-2 px-10"
+      className="fixed top-0 left-0 right-0 z-[100] bg-success text-success-foreground text-center text-xs py-1 font-medium hidden md:flex items-center justify-center gap-2 px-10"
       role="status"
       aria-label="Service guarantee"
     >

@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { LinkButton } from "@/components/ui/link-button";
 import { formatCurrency } from "@/lib/utils";
 import { BRAND } from "@/lib/branding";
-import { getTrialDaysRemaining, isOnActiveTrial } from "@/lib/entitlements";
+import { getTrialDaysRemaining, hasActiveSubscription, isOnActiveTrial } from "@/lib/entitlements";
+import { evaluateWorkflowRules } from "@/lib/workflows";
 import {
   Briefcase,
   Users,
@@ -23,6 +24,11 @@ export default async function DashboardPage() {
   const trialDaysRemaining = isOnActiveTrial(organization)
     ? getTrialDaysRemaining(organization)
     : null;
+
+  if (hasActiveSubscription(organization)) {
+    await evaluateWorkflowRules(organization.id);
+  }
+
   const stats = await getDashboardStats(organization.id);
 
   const recentJobs = await prisma.job.findMany({
