@@ -46,6 +46,12 @@ function trialEndingStorageKey(userId: string, trialDaysRemaining: number) {
   return `opervia-trial-ending-dismissed-${userId}-${trialDaysRemaining}`;
 }
 
+function formatTrialEndingLabel(days: number): string {
+  if (days === 0) return "Your free trial ends today";
+  if (days === 1) return "Your free trial ends tomorrow";
+  return `Your free trial ends in ${days} days`;
+}
+
 export function AppExperienceBanners({
   userId,
   userName,
@@ -82,15 +88,11 @@ export function AppExperienceBanners({
   if (!showWelcome && !showEnding) return null;
 
   const trialEndingLabel =
-    trialDaysRemaining === 0
-      ? "Your free trial ends today"
-      : trialDaysRemaining === 1
-        ? "Your free trial ends tomorrow"
-        : `Your free trial ends in ${trialDaysRemaining} days`;
+    trialDaysRemaining !== null ? formatTrialEndingLabel(trialDaysRemaining) : null;
 
   return (
     <div className="border-b bg-muted/30 px-4 md:px-6 py-4 space-y-3">
-      {showTrialEnding && showEnding && (
+      {showTrialEnding && showEnding && trialEndingLabel && (
         <div
           className="relative rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 pr-10 dark:border-amber-800 dark:bg-amber-950/40"
           role="alert"

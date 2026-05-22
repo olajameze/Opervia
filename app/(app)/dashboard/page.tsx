@@ -20,6 +20,9 @@ import { formatDate } from "@/lib/utils";
 
 export default async function DashboardPage() {
   const { session, organization } = await getOrganizationContext();
+  const trialDaysRemaining = isOnActiveTrial(organization)
+    ? getTrialDaysRemaining(organization)
+    : null;
   const stats = await getDashboardStats(organization.id);
 
   const recentJobs = await prisma.job.findMany({
@@ -43,8 +46,8 @@ export default async function DashboardPage() {
           <div>
             <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
               Free trial active
-              {organization.trialEndsAt &&
-                ` · ${getTrialDaysRemaining(organization)} day${getTrialDaysRemaining(organization) === 1 ? "" : "s"} left`}
+              {trialDaysRemaining !== null &&
+                ` · ${trialDaysRemaining} day${trialDaysRemaining === 1 ? "" : "s"} left`}
             </p>
             <p className="text-sm text-amber-800 dark:text-amber-200/90 mt-0.5">
               You have full Starter access plus previews of Logistics and Analytics. Automations
