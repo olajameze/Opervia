@@ -62,19 +62,46 @@ export function AdminUserTable({ users }: { users: AdminUserRow[] }) {
   }
 
   async function deleteUser(id: string) {
-    if (!confirm("Permanently delete this user and their data?")) return;
+    if (
+      !confirm(
+        "Permanently delete this user's login? (Their organization, billing and team data are preserved — use 'Delete account' to wipe the whole org.)"
+      )
+    )
+      return;
     const res = await fetch(`/api/admin/users/${id}`, { method: "DELETE" });
     if (!res.ok) alert("Delete failed");
     else router.refresh();
   }
 
   async function patchOrg(orgId: string, action: string) {
+    if (action === "cancel_plan") {
+      if (
+        !confirm(
+          "Cancel this organization's plan and Stripe subscription? They will stop being billed immediately."
+        )
+      )
+        return;
+    }
     const res = await fetch(`/api/admin/organizations/${orgId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action }),
     });
     if (!res.ok) alert("Organization action failed");
+    else router.refresh();
+  }
+
+  async function deleteOrg(orgId: string, orgName: string) {
+    if (
+      !confirm(
+        `PERMANENTLY delete the account "${orgName}"? This cancels any Stripe subscription, wipes ALL their data (clients, jobs, equipment, invoices, staff) and removes every team member. This cannot be undone.`
+      )
+    )
+      return;
+    const res = await fetch(`/api/admin/organizations/${orgId}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) alert("Account deletion failed");
     else router.refresh();
   }
 
@@ -136,6 +163,9 @@ export function AdminUserTable({ users }: { users: AdminUserRow[] }) {
           render: (row) => {
             const id = String(row.id);
             const orgId = row.organizationId ? String(row.organizationId) : null;
+            const orgName = row.organizationName
+              ? String(row.organizationName)
+              : "this account";
             const frozen = Boolean(row.frozenAt);
 
             return (
@@ -156,11 +186,18 @@ export function AdminUserTable({ users }: { users: AdminUserRow[] }) {
                         patchOrg(orgId, row.orgFrozenAt ? "unfreeze" : "freeze")
                       }
                     />
+                    {!row.isSuperAdmin && (
+                      <ActionButton
+                        label="Delete account"
+                        variant="destructive"
+                        onClick={() => deleteOrg(orgId, orgName)}
+                      />
+                    )}
                   </>
                 )}
                 {!row.isSuperAdmin && (
                   <ActionButton
-                    label="Delete"
+                    label="Delete user"
                     variant="destructive"
                     onClick={() => deleteUser(id)}
                   />
