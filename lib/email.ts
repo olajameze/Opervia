@@ -21,7 +21,7 @@ export function isEmailConfigured() {
   return Boolean(process.env.RESEND_API_KEY?.trim() && process.env.RESEND_FROM?.trim());
 }
 
-/** Warn at startup when production is missing email configuration. */
+/** Fail fast in production when required email env vars are missing. */
 export function validateProductionEmailConfig() {
   if (!isProductionRuntime()) return;
 
@@ -32,6 +32,7 @@ export function validateProductionEmailConfig() {
   if (missing.length > 0) {
     const message = `[${BRAND.name}] Production email misconfigured — missing: ${missing.join(", ")}`;
     console.error(message);
+    throw new Error(message);
   }
 }
 

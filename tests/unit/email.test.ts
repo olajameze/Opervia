@@ -3,6 +3,7 @@ import {
   getEmailConfigError,
   isEmailConfigured,
   sendEmail,
+  validateProductionEmailConfig,
 } from "@/lib/email";
 
 describe("email", () => {
@@ -58,5 +59,24 @@ describe("email", () => {
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error).toContain("RESEND_API_KEY");
     expect(errorSpy).toHaveBeenCalled();
+  });
+
+  it("throws during production startup when email is misconfigured", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("VERCEL_ENV", "production");
+    delete process.env.RESEND_API_KEY;
+    delete process.env.RESEND_FROM;
+
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    expect(() => validateProductionEmailConfig()).toThrow(/RESEND_API_KEY/);
+  });
+
+  it("does not throw outside production", () => {
+    vi.stubEnv("NODE_ENV", "development");
+    delete process.env.RESEND_API_KEY;
+    delete process.env.RESEND_FROM;
+
+    expect(() => validateProductionEmailConfig()).not.toThrow();
   });
 });
