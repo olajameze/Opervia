@@ -8,14 +8,14 @@ type BarChartItem = {
 type BarChartProps = {
   data: BarChartItem[];
   valueFormatter?: (value: number) => string;
-  barClassName?: string;
+  progressClassName?: string;
   maxValue?: number;
 };
 
 export function BarChart({
   data,
   valueFormatter = (value) => String(value),
-  barClassName = "bg-primary",
+  progressClassName = "analytics-progress",
   maxValue,
 }: BarChartProps) {
   const peak = maxValue ?? Math.max(...data.map((item) => item.value), 1);
@@ -28,12 +28,12 @@ export function BarChart({
             <span className="text-muted-foreground">{item.label}</span>
             <span className="font-medium tabular-nums">{valueFormatter(item.value)}</span>
           </div>
-          <div className="h-2.5 overflow-hidden rounded-full bg-muted">
-            <div
-              className={`h-full rounded-full transition-all ${barClassName}`}
-              style={{ width: `${Math.max((item.value / peak) * 100, item.value > 0 ? 4 : 0)}%` }}
-            />
-          </div>
+          <progress
+            className={progressClassName}
+            value={item.value}
+            max={peak}
+            aria-label={`${item.label}: ${valueFormatter(item.value)}`}
+          />
         </div>
       ))}
     </div>
@@ -55,12 +55,12 @@ export function JobCompletionChart({ data }: JobCompletionChartProps) {
               {item.rate}% ({item.completed}/{item.total || 0})
             </span>
           </div>
-          <div className="h-2.5 overflow-hidden rounded-full bg-muted">
-            <div
-              className="h-full rounded-full bg-success transition-all"
-              style={{ width: `${item.rate}%` }}
-            />
-          </div>
+          <progress
+            className="analytics-progress analytics-progress-success"
+            value={item.rate}
+            max={100}
+            aria-label={`${item.label}: ${item.rate}% completion`}
+          />
         </div>
       ))}
     </div>
@@ -73,17 +73,38 @@ type CompletionDonutProps = {
   total: number;
 };
 
+const DONUT_RADIUS = 40;
+const DONUT_CIRCUMFERENCE = 2 * Math.PI * DONUT_RADIUS;
+
 export function CompletionDonut({ rate, completed, total }: CompletionDonutProps) {
+  const clampedRate = Math.max(0, Math.min(rate, 100));
+  const strokeDashoffset =
+    DONUT_CIRCUMFERENCE - (clampedRate / 100) * DONUT_CIRCUMFERENCE;
+
   return (
     <div className="flex items-center gap-6">
-      <div
-        className="relative h-28 w-28 shrink-0 rounded-full"
-        style={{
-          background: `conic-gradient(hsl(var(--success)) ${rate}%, hsl(var(--muted)) 0)`,
-        }}
-        role="img"
-        aria-label={`${rate}% job completion rate`}
-      >
+      <div className="relative h-28 w-28 shrink-0" role="img" aria-label={`${rate}% job completion rate`}>
+        <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
+          <circle
+            cx="50"
+            cy="50"
+            r={DONUT_RADIUS}
+            fill="none"
+            className="stroke-muted"
+            strokeWidth="8"
+          />
+          <circle
+            cx="50"
+            cy="50"
+            r={DONUT_RADIUS}
+            fill="none"
+            className="stroke-success"
+            strokeWidth="8"
+            strokeLinecap="round"
+            strokeDasharray={DONUT_CIRCUMFERENCE}
+            strokeDashoffset={strokeDashoffset}
+          />
+        </svg>
         <div className="absolute inset-3 flex items-center justify-center rounded-full bg-card text-center">
           <div>
             <p className="text-2xl font-bold tabular-nums">{rate}%</p>

@@ -106,6 +106,9 @@ export function TeamInvitePanel() {
             <Label htmlFor="invite-role">Role</Label>
             <select
               id="invite-role"
+              name="role"
+              aria-label="Role"
+              title="Role"
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               value={role}
               onChange={(e) => setRole(e.target.value as Role)}

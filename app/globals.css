@@ -109,6 +109,43 @@
   }
 }
 
+@layer components {
+  .analytics-progress {
+    display: block;
+    width: 100%;
+    height: 0.625rem;
+    appearance: none;
+    border: none;
+    border-radius: 9999px;
+    overflow: hidden;
+    background-color: hsl(var(--muted));
+  }
+
+  .analytics-progress::-webkit-progress-bar {
+    background-color: hsl(var(--muted));
+    border-radius: 9999px;
+  }
+
+  .analytics-progress::-webkit-progress-value {
+    background-color: hsl(var(--primary));
+    border-radius: 9999px;
+    transition: width 0.2s ease;
+  }
+
+  .analytics-progress::-moz-progress-bar {
+    background-color: hsl(var(--primary));
+    border-radius: 9999px;
+  }
+
+  .analytics-progress-success::-webkit-progress-value {
+    background-color: hsl(var(--success));
+  }
+
+  .analytics-progress-success::-moz-progress-bar {
+    background-color: hsl(var(--success));
+  }
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
