@@ -58,6 +58,9 @@ export default async function SuperAdminPage() {
             <h1 className="text-lg font-bold">Super Admin</h1>
           </div>
           <div className="flex gap-2">
+            <LinkButton href="/super-admin/security" variant="outline" size="sm">
+              Security
+            </LinkButton>
             <LinkButton href="/maintenance" variant="outline" size="sm">
               Maintenance Console
             </LinkButton>

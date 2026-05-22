@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { createCheckoutSession } from "@/lib/stripe";
 import { getStripePriceId, type SubscriptionPlan } from "@/lib/plans";
 import { getAppUrl } from "@/lib/app-url";
+import { denyUnlessApiPermission } from "@/lib/api-auth";
 import { z } from "zod";
 
 const schema = z.object({
@@ -15,6 +16,9 @@ export async function POST(req: Request) {
   if (!session?.user?.organizationId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const forbidden = denyUnlessApiPermission(session.user.role, "billing.manage");
+  if (forbidden) return forbidden;
 
   const body = schema.parse(await req.json().catch(() => ({})));
   const plan = body.plan as SubscriptionPlan;

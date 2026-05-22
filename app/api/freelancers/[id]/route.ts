@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireApiOrganization } from "@/lib/api-auth";
+import { denyUnlessApiPermission, requireApiOrganization } from "@/lib/api-auth";
 
 export async function DELETE(
   _req: Request,
@@ -8,6 +8,9 @@ export async function DELETE(
 ) {
   const ctx = await requireApiOrganization("workforce");
   if ("error" in ctx) return ctx.error;
+
+  const forbidden = denyUnlessApiPermission(ctx.session.user.role, "workforce.delete");
+  if (forbidden) return forbidden;
 
   const existing = await prisma.freelancerProfile.findFirst({
     where: { id: params.id, organizationId: ctx.organizationId },

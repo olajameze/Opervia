@@ -12,6 +12,8 @@ declare module "next-auth" {
       role?: Role;
       organizationName?: string;
       isSuperAdmin?: boolean;
+      totpEnabled?: boolean;
+      superAdminMfaVerified?: boolean;
     };
   }
 }
@@ -25,5 +27,7 @@ declare module "next-auth/jwt" {
     subscriptionPlan?: SubscriptionPlan;
     subscriptionStatus?: SubscriptionStatus;
     isSuperAdmin?: boolean;
+    totpEnabled?: boolean;
+    superAdminMfaVerified?: boolean;
   }
 }

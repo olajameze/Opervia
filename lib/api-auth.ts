@@ -9,6 +9,15 @@ import {
   getStaffUpgradeMessage,
   getFreelancerUpgradeMessage,
 } from "@/lib/plans";
+import { hasApiPermission, type ApiPermission } from "@/lib/roles";
+import type { Role } from "@prisma/client";
+
+export function denyUnlessApiPermission(role: Role | undefined, permission: ApiPermission) {
+  if (!hasApiPermission(role, permission)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  return null;
+}
 
 export async function requireApiOrganization(module?: AppModule) {
   const session = await auth();

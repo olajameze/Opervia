@@ -26,14 +26,29 @@ export async function isSuperAdminUser(userId: string): Promise<boolean> {
   return superAdminEmails().includes(user.email.toLowerCase());
 }
 
-export async function requireSuperAdmin() {
+type SuperAdminGuardOptions = {
+  skipMfa?: boolean;
+};
+
+function requiresSuperAdminMfa(session: {
+  user: { totpEnabled?: boolean; superAdminMfaVerified?: boolean };
+}) {
+  return Boolean(session.user.totpEnabled && !session.user.superAdminMfaVerified);
+}
+
+export async function requireSuperAdmin(options?: SuperAdminGuardOptions) {
   const session = await auth();
   if (!session?.user?.id) redirect("/login?callbackUrl=/super-admin");
   if (!(await isSuperAdminUser(session.user.id))) redirect("/dashboard");
+
+  if (!options?.skipMfa && requiresSuperAdminMfa(session)) {
+    redirect("/super-admin/mfa");
+  }
+
   return session;
 }
 
-export async function requireSuperAdminApi() {
+export async function requireSuperAdminApi(options?: SuperAdminGuardOptions) {
   const session = await auth();
   if (!session?.user?.id) {
     return {
@@ -44,6 +59,15 @@ export async function requireSuperAdminApi() {
   if (!(await isSuperAdminUser(session.user.id))) {
     return {
       error: NextResponse.json({ error: "Forbidden" }, { status: 403 }),
+    };
+  }
+
+  if (!options?.skipMfa && requiresSuperAdminMfa(session)) {
+    return {
+      error: NextResponse.json(
+        { error: "MFA verification required", code: "MFA_REQUIRED" },
+        { status: 403 }
+      ),
     };
   }
 
@@ -66,5 +90,13 @@ export const MAINTENANCE_EXEMPT_PREFIXES = [
 export function isMaintenanceExemptPath(pathname: string): boolean {
   return MAINTENANCE_EXEMPT_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
+}
+
+export function isSuperAdminMfaExemptPath(pathname: string): boolean {
+  return (
+    pathname === "/super-admin/mfa" ||
+    pathname.startsWith("/super-admin/security") ||
+    pathname.startsWith("/api/admin/mfa")
   );
 }

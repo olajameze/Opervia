@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireApiOrganization } from "@/lib/api-auth";
+import { denyUnlessApiPermission, requireApiOrganization } from "@/lib/api-auth";
 import { canExportData } from "@/lib/entitlements";
 import {
   buildExportCsv,
@@ -14,6 +14,9 @@ export async function GET(
 ) {
   const ctx = await requireApiOrganization();
   if ("error" in ctx) return ctx.error;
+
+  const forbidden = denyUnlessApiPermission(ctx.session.user.role, "organization.manage");
+  if (forbidden) return forbidden;
 
   if (!canExportData(ctx.organization)) {
     return NextResponse.json(

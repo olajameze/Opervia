@@ -20,6 +20,8 @@ export const authConfig = {
         session.user.role = token.role as Role | undefined;
         session.user.organizationName = token.organizationName as string | undefined;
         session.user.isSuperAdmin = Boolean(token.isSuperAdmin);
+        session.user.totpEnabled = Boolean(token.totpEnabled);
+        session.user.superAdminMfaVerified = Boolean(token.superAdminMfaVerified);
       }
       return session;
     },

@@ -19,13 +19,14 @@ async function loadUserFlagsIntoToken(token: JWT) {
 
   const user = await prisma.user.findUnique({
     where: { id: token.id },
-    select: { isSuperAdmin: true, email: true },
+    select: { isSuperAdmin: true, email: true, totpEnabledAt: true },
   });
 
   if (!user) return;
 
   token.isSuperAdmin =
     user.isSuperAdmin || superAdminEmails().includes(user.email.toLowerCase());
+  token.totpEnabled = Boolean(user.totpEnabledAt);
 }
 
 async function loadMembershipIntoToken(token: JWT) {
@@ -145,14 +146,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       return true;
     },
-    async jwt({ token, user, trigger }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
         await loadUserFlagsIntoToken(token);
         await loadMembershipIntoToken(token);
+        token.superAdminMfaVerified = token.totpEnabled ? false : true;
       } else if (trigger === "update") {
         await loadUserFlagsIntoToken(token);
         await loadMembershipIntoToken(token);
+        if (session && typeof session.superAdminMfaVerified === "boolean") {
+          token.superAdminMfaVerified = session.superAdminMfaVerified;
+        }
       }
 
       return token;

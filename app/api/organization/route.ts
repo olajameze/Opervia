@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { requireApiOrganization } from "@/lib/api-auth";
+import { denyUnlessApiPermission, requireApiOrganization } from "@/lib/api-auth";
 import { slugify } from "@/lib/services/organization";
 
 const schema = z.object({
@@ -11,6 +11,9 @@ const schema = z.object({
 export async function PATCH(req: Request) {
   const ctx = await requireApiOrganization();
   if ("error" in ctx) return ctx.error;
+
+  const forbidden = denyUnlessApiPermission(ctx.session.user.role, "organization.manage");
+  if (forbidden) return forbidden;
 
   try {
     const body = schema.parse(await req.json());

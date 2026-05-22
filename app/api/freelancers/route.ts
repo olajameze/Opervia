@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { assertFreelancerCapacity, requireApiOrganization } from "@/lib/api-auth";
+import { assertFreelancerCapacity, denyUnlessApiPermission, requireApiOrganization } from "@/lib/api-auth";
 
 const schema = z.object({
   name: z.string().min(1),
@@ -13,6 +13,9 @@ const schema = z.object({
 export async function POST(req: Request) {
   const ctx = await requireApiOrganization("workforce");
   if ("error" in ctx) return ctx.error;
+
+  const forbidden = denyUnlessApiPermission(ctx.session.user.role, "workforce.write");
+  if (forbidden) return forbidden;
 
   const limitError = await assertFreelancerCapacity(ctx.organizationId);
   if (limitError) return limitError;

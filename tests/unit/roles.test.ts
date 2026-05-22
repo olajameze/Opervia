@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   canRoleAccessModule,
   canManageTeamInvites,
+  hasApiPermission,
   ROLE_MODULE_ACCESS,
 } from "@/lib/roles";
 
@@ -42,5 +43,17 @@ describe("roles", () => {
     expect(roles).toContain("TECH");
     expect(roles).toContain("DISPATCHER");
     expect(ROLE_MODULE_ACCESS.VIEWER).toContain("analytics");
+  });
+
+  it("restricts destructive workforce actions to owner and admin", () => {
+    expect(hasApiPermission("OWNER", "workforce.delete")).toBe(true);
+    expect(hasApiPermission("ADMIN", "workforce.delete")).toBe(true);
+    expect(hasApiPermission("OPS_MANAGER", "workforce.delete")).toBe(false);
+    expect(hasApiPermission("VIEWER", "workforce.write")).toBe(false);
+  });
+
+  it("allows finance to write billing but not manage subscriptions", () => {
+    expect(hasApiPermission("FINANCE", "billing.write")).toBe(true);
+    expect(hasApiPermission("FINANCE", "billing.manage")).toBe(false);
   });
 });

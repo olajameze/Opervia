@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import { createBillingPortalSession } from "@/lib/stripe";
-import { requireApiOrganization } from "@/lib/api-auth";
+import { denyUnlessApiPermission, requireApiOrganization } from "@/lib/api-auth";
 import { getAppUrl } from "@/lib/app-url";
 
 export async function POST() {
   const ctx = await requireApiOrganization("billing");
   if ("error" in ctx) return ctx.error;
+
+  const forbidden = denyUnlessApiPermission(ctx.session.user.role, "billing.manage");
+  if (forbidden) return forbidden;
 
   if (!ctx.organization.stripeCustomerId) {
     return NextResponse.json(

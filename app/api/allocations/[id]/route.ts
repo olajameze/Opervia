@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireApiOrganization } from "@/lib/api-auth";
+import { denyUnlessApiPermission, requireApiOrganization } from "@/lib/api-auth";
 
 export async function PATCH(
   _req: Request,
@@ -8,6 +8,9 @@ export async function PATCH(
 ) {
   const ctx = await requireApiOrganization("rentals");
   if ("error" in ctx) return ctx.error;
+
+  const forbidden = denyUnlessApiPermission(ctx.session.user.role, "rentals.write");
+  if (forbidden) return forbidden;
 
   const allocation = await prisma.equipmentAllocation.findFirst({
     where: { id: params.id, organizationId: ctx.organizationId },
