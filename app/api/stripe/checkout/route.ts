@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { createCheckoutSession } from "@/lib/stripe";
-import { getStripePriceId, type SubscriptionPlan } from "@/lib/plans";
+import { getStripePriceId, getMissingStripePriceEnv, type SubscriptionPlan } from "@/lib/plans";
 import { getAppUrl } from "@/lib/app-url";
 import { denyUnlessApiPermission } from "@/lib/api-auth";
 import { z } from "zod";
@@ -24,9 +24,12 @@ export async function POST(req: Request) {
   const plan = body.plan as SubscriptionPlan;
   const priceId = getStripePriceId(plan);
 
-  if (!priceId) {
+  const missingEnv = getMissingStripePriceEnv(plan);
+  if (!priceId || missingEnv) {
     return NextResponse.json(
-      { error: `Stripe price not configured for ${plan}` },
+      {
+        error: `Stripe price not configured for ${plan}. Set ${missingEnv ?? "STRIPE_PRICE_ENTERPRISE"} in your environment (Vercel → Settings → Environment Variables) and redeploy.`,
+      },
       { status: 500 }
     );
   }

@@ -133,11 +133,26 @@ export function getPlanDisplayName(
   return PLANS[getEffectivePlan(org)].name;
 }
 
+function readStripePriceEnv(name: string): string | undefined {
+  const value = process.env[name]?.trim();
+  return value || undefined;
+}
+
 export function getStripePriceId(plan: SubscriptionPlan): string | undefined {
-  if (plan === "STARTER") return process.env.STRIPE_PRICE_STARTER;
-  if (plan === "PRO") return process.env.STRIPE_PRICE_PRO;
-  if (plan === "ENTERPRISE") return process.env.STRIPE_PRICE_ENTERPRISE;
+  if (plan === "STARTER") return readStripePriceEnv("STRIPE_PRICE_STARTER");
+  if (plan === "PRO") return readStripePriceEnv("STRIPE_PRICE_PRO");
+  if (plan === "ENTERPRISE") return readStripePriceEnv("STRIPE_PRICE_ENTERPRISE");
   return undefined;
+}
+
+export function getMissingStripePriceEnv(plan: SubscriptionPlan): string | null {
+  const envName =
+    plan === "STARTER"
+      ? "STRIPE_PRICE_STARTER"
+      : plan === "PRO"
+        ? "STRIPE_PRICE_PRO"
+        : "STRIPE_PRICE_ENTERPRISE";
+  return getStripePriceId(plan) ? null : envName;
 }
 
 export function planFromStripePriceId(priceId: string): SubscriptionPlan | null {
