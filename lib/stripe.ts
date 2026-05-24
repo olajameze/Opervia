@@ -1,5 +1,4 @@
 import Stripe from "stripe";
-import { BRAND } from "@/lib/branding";
 import type { SubscriptionPlan } from "@prisma/client";
 
 let cachedStripe: Stripe | null = null;
@@ -38,15 +37,13 @@ export async function createCheckoutSession({
   successUrl: string;
   cancelUrl: string;
 }) {
-  // Subscription mode cannot use `customer_creation` (payment mode only).
-  // Omit `customer` when none exists — Checkout collects email and creates one.
+  // App-side free trial is handled at signup — Stripe checkout charges immediately.
   return getStripe().checkout.sessions.create({
     ...(customerId ? { customer: customerId } : {}),
     mode: "subscription",
     payment_method_types: ["card"],
     line_items: [{ price: priceId, quantity: 1 }],
     subscription_data: {
-      trial_period_days: BRAND.trialDays,
       metadata: { organizationId, plan },
     },
     metadata: { organizationId, plan },

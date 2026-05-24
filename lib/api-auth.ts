@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
-import { canAccessModule, hasActiveSubscription } from "@/lib/entitlements";
+import { canAccessModule, hasActiveSubscription, hasBillingPortalAccess } from "@/lib/entitlements";
 import type { AppModule } from "@/lib/plans";
 import {
   getStaffLimit,
@@ -19,7 +19,10 @@ export function denyUnlessApiPermission(role: Role | undefined, permission: ApiP
   return null;
 }
 
-export async function requireApiOrganization(module?: AppModule) {
+export async function requireApiOrganization(
+  module?: AppModule,
+  options?: { allowInactiveSubscription?: boolean }
+) {
   const session = await auth();
   if (!session?.user?.id || !session.user.organizationId) {
     return {
@@ -63,7 +66,14 @@ export async function requireApiOrganization(module?: AppModule) {
     };
   }
 
-  if (!hasActiveSubscription(organization)) {
+  const billingOnly =
+    options?.allowInactiveSubscription &&
+    module === "billing" &&
+    hasBillingPortalAccess(organization);
+
+  const inactiveAllowed = options?.allowInactiveSubscription && !module;
+
+  if (!hasActiveSubscription(organization) && !billingOnly && !inactiveAllowed) {
     return {
       error: NextResponse.json(
         { error: "Subscription inactive. Update billing to continue." },

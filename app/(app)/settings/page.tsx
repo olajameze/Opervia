@@ -4,9 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { OrganizationSettingsForm } from "@/components/app/ModuleForms";
 import { TeamInvitePanel } from "@/components/app/TeamInvitePanel";
 import { DataExportPanel } from "@/components/app/DataExportPanel";
+import { WorkspaceDataPanel } from "@/components/app/WorkspaceDataPanel";
 import { BRAND } from "@/lib/branding";
-import { canExportData, getEffectivePlan } from "@/lib/entitlements";
+import { canExportData, canExportWorkspaceData, getEffectivePlan } from "@/lib/entitlements";
 import { canManageTeamInvites } from "@/lib/roles";
+import { Role } from "@prisma/client";
 import { PLANS } from "@/lib/plans";
 import { formatDate } from "@/lib/utils";
 
@@ -15,6 +17,8 @@ export default async function SettingsPage() {
   const plan = getEffectivePlan(organization);
   const canInvite = canManageTeamInvites(session.user.role);
   const canExport = canExportData(organization);
+  const canExportWorkspace = canExportWorkspaceData(organization);
+  const isOwner = session.user.role === Role.OWNER;
 
   return (
     <div className="space-y-8 max-w-2xl">
@@ -28,6 +32,10 @@ export default async function SettingsPage() {
       {canInvite && <TeamInvitePanel />}
 
       <DataExportPanel organization={organization} canExport={canExport} />
+
+      {isOwner && (
+        <WorkspaceDataPanel organization={organization} canExport={canExportWorkspace} />
+      )}
 
       <Card>
         <CardHeader>

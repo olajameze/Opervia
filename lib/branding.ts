@@ -23,8 +23,8 @@ export const BRAND = {
     "Professional enterprise UX",
   ],
   trialDays: 5,
-  supportEmail: "opervia@gmail.com",
-  salesEmail: "opervia@gmail.com",
+  supportEmail: process.env.OPERVIA_SUPPORT_EMAIL?.trim() || "opervia@gmail.com",
+  salesEmail: process.env.OPERVIA_SALES_EMAIL?.trim() || process.env.OPERVIA_SUPPORT_EMAIL?.trim() || "opervia@gmail.com",
 } as const;
 
 export const HERO = {

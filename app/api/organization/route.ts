@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { denyUnlessApiPermission, requireApiOrganization } from "@/lib/api-auth";
-import { slugify } from "@/lib/services/organization";
+import { createUniqueOrganizationSlug } from "@/lib/services/organization";
 
 const schema = z.object({
   name: z.string().min(2),
@@ -17,11 +17,12 @@ export async function PATCH(req: Request) {
 
   try {
     const body = schema.parse(await req.json());
+    const slug = await createUniqueOrganizationSlug(body.name);
     const organization = await prisma.organization.update({
       where: { id: ctx.organizationId },
       data: {
         name: body.name,
-        slug: slugify(body.name),
+        slug,
       },
     });
     return NextResponse.json(organization);

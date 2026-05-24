@@ -12,7 +12,7 @@ export async function POST(req: Request) {
   const maintenanceBlocked = await guardPublicAccessDuringMaintenance();
   if (maintenanceBlocked) return maintenanceBlocked;
 
-  const rateLimited = ipRateLimit(req, "verify-email", 30, 60 * 60 * 1000);
+  const rateLimited = await ipRateLimit(req, "verify-email", 30, 60 * 60 * 1000);
   if (rateLimited) return rateLimited;
   let token: string;
   try {

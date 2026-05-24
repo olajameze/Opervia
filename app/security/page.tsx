@@ -1,8 +1,8 @@
+import { Shield, Lock, Eye, Server } from "lucide-react";
 import { Header } from "@/components/marketing/Header";
 import { Footer } from "@/components/marketing/Footer";
 import { BRAND } from "@/lib/branding";
 import { createMetadata } from "@/lib/seo";
-import { Shield, Lock, Eye, Server } from "lucide-react";
 
 export const metadata = createMetadata({
   title: "Security",
@@ -11,10 +11,30 @@ export const metadata = createMetadata({
 });
 
 const securityFeatures = [
-  { icon: Lock, title: "Encryption", description: "All data encrypted in transit (TLS 1.3) and at rest (AES-256)." },
-  { icon: Shield, title: "Access Control", description: "Role-based permissions with organization-level data isolation." },
-  { icon: Eye, title: "Audit Logging", description: "Complete audit trail of all critical actions across your organization." },
-  { icon: Server, title: "Infrastructure", description: "Hosted on SOC 2 compliant infrastructure with 99.9% uptime SLA." },
+  {
+    icon: Lock,
+    title: "Encryption",
+    description:
+      "All traffic is encrypted in transit with TLS. Credentials are hashed and never stored in plain text.",
+  },
+  {
+    icon: Shield,
+    title: "Access control",
+    description:
+      "Role-based permissions with organization-level data isolation and optional super-admin MFA.",
+  },
+  {
+    icon: Eye,
+    title: "Audit logging",
+    description:
+      "Security-sensitive platform events are logged. Organization owners can request activity exports from support.",
+  },
+  {
+    icon: Server,
+    title: "Infrastructure",
+    description:
+      "Hosted on modern cloud infrastructure (Vercel, managed PostgreSQL) with automated deployments and monitoring.",
+  },
 ];
 
 export default function SecurityPage() {
@@ -25,7 +45,7 @@ export default function SecurityPage() {
         <div className="max-w-3xl mx-auto text-center mb-16 space-y-4">
           <h1 className="text-4xl font-bold">Security at {BRAND.name}</h1>
           <p className="text-lg text-muted-foreground">
-            Enterprise-grade security built into every layer of the platform.
+            Practical security controls designed for operational teams across Europe.
           </p>
         </div>
         <div className="grid gap-8 md:grid-cols-2 max-w-4xl mx-auto">

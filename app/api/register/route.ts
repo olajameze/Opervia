@@ -62,7 +62,7 @@ export async function POST(req: Request) {
 
   const normalizedEmail = parsed.email.trim().toLowerCase();
 
-  const rateLimited = ipAndIdentifierRateLimit(req, "register", normalizedEmail, {
+  const rateLimited = await ipAndIdentifierRateLimit(req, "register", normalizedEmail, {
     ip: { limit: 10, windowMs: 60 * 60 * 1000 },
     id: { limit: 3, windowMs: 60 * 60 * 1000 },
   });
@@ -110,12 +110,22 @@ export async function POST(req: Request) {
     },
   });
 
-  await sendSignupEmailsForNewUser({
+  const emailResults = await sendSignupEmailsForNewUser({
     userId: user.id,
     email: normalizedEmail,
     name: parsed.name,
     skipVerification: Boolean(pendingInvite),
   });
+
+  if (!pendingInvite && emailResults.verification && !emailResults.verification.ok) {
+    return NextResponse.json(
+      {
+        error:
+          "Account created but verification email could not be sent. Try again later or contact support.",
+      },
+      { status: 503 }
+    );
+  }
 
   return genericRegisterResponse(!pendingInvite);
 }

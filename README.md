@@ -39,13 +39,13 @@ npm install
 # Copy environment variables
 cp .env.example .env
 
-# Configure DATABASE_URL and AUTH_SECRET in .env
+# Configure DATABASE_URL, DIRECT_URL, and AUTH_SECRET in .env
 # Generate AUTH_SECRET: openssl rand -base64 32
 
-# Push database schema
-npm run db:push
+# Apply database migrations
+npm run db:migrate
 
-# Seed demo data
+# Seed demo data (local dev only — blocked in production)
 npm run db:seed
 
 # Start development server
@@ -54,7 +54,7 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-### Demo Account
+### Demo Account (local dev only)
 
 - Email: `demo@opervia.com`
 - Password: `password123`
@@ -68,9 +68,10 @@ See [.env.example](.env.example) for all required variables.
 | Command | Description |
 |---------|-------------|
 | `npm run dev` | Start dev server |
-| `npm run build` | Production build |
-| `npm run db:push` | Push Prisma schema |
-| `npm run db:seed` | Seed demo data |
+| `npm run build` | Production build (migrations + Next.js) |
+| `npm run db:migrate` | Create/apply migrations locally |
+| `npm run db:migrate:deploy` | Apply migrations (production-style) |
+| `npm run db:seed` | Seed demo data (local only) |
 | `npm run lint` | Run ESLint |
 | `npm run typecheck` | TypeScript check |
 | `npm test` | Run tests |
@@ -80,8 +81,14 @@ See [.env.example](.env.example) for all required variables.
 Deploy to Vercel:
 
 1. Connect repository
-2. Set environment variables from `.env.example`
-3. Deploy
+2. Set environment variables from `.env.example` on **Production**
+3. Add custom domain and set `NEXT_PUBLIC_APP_URL` + `AUTH_URL`
+4. Follow [docs/GO-LIVE.md](docs/GO-LIVE.md) before launching to real users
+
+Additional guides:
+
+- [Stripe setup](docs/STRIPE-SETUP.md)
+- [Database backups](docs/BACKUPS.md)
 
 ## License
 

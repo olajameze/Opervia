@@ -4,6 +4,16 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
+  const isProduction =
+    process.env.NODE_ENV === "production" && process.env.VERCEL_ENV !== "preview";
+
+  if (isProduction) {
+    console.error(
+      "Refusing to seed a production database. Use local development only (npm run db:seed)."
+    );
+    process.exit(1);
+  }
+
   const passwordHash = await bcrypt.hash("password123", 12);
 
   const user = await prisma.user.upsert({

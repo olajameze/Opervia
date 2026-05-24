@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid email" }, { status: 400 });
   }
 
-  const rateLimited = ipAndIdentifierRateLimit(req, "resend-verification", email, {
+  const rateLimited = await ipAndIdentifierRateLimit(req, "resend-verification", email, {
     ip: { limit: 10, windowMs: 60 * 60 * 1000 },
     id: { limit: 3, windowMs: 60 * 60 * 1000 },
   });

@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import Script from "next/script";
 import { createMetadata } from "@/lib/seo";
-import { BRAND } from "@/lib/branding";
 import { Providers } from "@/components/providers";
 import { CookieConsent } from "@/components/legal/CookieConsent";
+import { GoogleAnalytics } from "@/components/legal/GoogleAnalytics";
 import { SatisfactionBanner } from "@/components/layout/SatisfactionBanner";
+import { StripeTestModeBanner } from "@/components/layout/StripeTestModeBanner";
 import { enforceMaintenanceMode } from "@/lib/maintenance-enforcement";
 import "./globals.css";
 
@@ -31,22 +31,8 @@ export default async function RootLayout({
         <Providers>{children}</Providers>
         <CookieConsent />
         <SatisfactionBanner />
-        {gaId && (
-          <>
-            <Script
-              src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
-              strategy="afterInteractive"
-            />
-            <Script id="google-analytics" strategy="afterInteractive">
-              {`
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-                gtag('config', '${gaId}', { anonymize_ip: true });
-              `}
-            </Script>
-          </>
-        )}
+        <StripeTestModeBanner />
+        {gaId ? <GoogleAnalytics measurementId={gaId} /> : null}
       </body>
     </html>
   );

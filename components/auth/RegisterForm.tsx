@@ -136,7 +136,10 @@ export function RegisterForm({
             </p>
           </div>
           <TurnstileWidget onTokenChange={setTurnstileToken} />
-          <div className="flex items-start gap-2">
+          <Label
+            htmlFor="accept-terms"
+            className="flex cursor-pointer items-start gap-2 text-sm font-normal leading-snug"
+          >
             <input
               id="accept-terms"
               name="acceptTerms"
@@ -144,9 +147,10 @@ export function RegisterForm({
               required
               checked={acceptedTerms}
               onChange={(e) => setAcceptedTerms(e.target.checked)}
+              aria-label="I agree to the Terms of Service and Privacy Policy"
               className="mt-1 h-4 w-4 rounded border-input accent-primary"
             />
-            <Label htmlFor="accept-terms" className="text-sm font-normal leading-snug">
+            <span>
               I agree to the{" "}
               <Link href="/terms" className="text-primary hover:underline" target="_blank">
                 Terms of Service
@@ -156,8 +160,8 @@ export function RegisterForm({
                 Privacy Policy
               </Link>
               .
-            </Label>
-          </div>
+            </span>
+          </Label>
           {error && <p className="text-sm text-destructive">{error}</p>}
           <div className="flex justify-center pt-1">
             <Button type="submit" className="min-w-[200px]" disabled={loading || !acceptedTerms}>

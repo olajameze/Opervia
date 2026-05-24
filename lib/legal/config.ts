@@ -1,5 +1,6 @@
 import { BRAND } from "@/lib/branding";
 import { PLANS } from "@/lib/plans";
+import { getAppUrl } from "@/lib/app-url";
 
 /** Legal operator details — override via environment in production if needed. */
 export const LEGAL = {
@@ -13,8 +14,7 @@ export const LEGAL = {
   governingLaw: "England and Wales",
   privacyEmail: BRAND.supportEmail,
   legalEmail: BRAND.supportEmail,
-  website:
-    process.env.NEXT_PUBLIC_APP_URL ?? "https://opervia-two.vercel.app",
+  website: getAppUrl(),
   creatorUrl: "https://www.jgdev.co.uk/",
   trialDays: BRAND.trialDays,
   plans: {

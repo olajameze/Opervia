@@ -1,18 +1,35 @@
 import { prisma } from "@/lib/db";
 import { Role } from "@prisma/client";
 
+export async function createUniqueOrganizationSlug(name: string): Promise<string> {
+  const base = slugify(name) || "workspace";
+  let candidate = base;
+  let suffix = 1;
+
+  while (true) {
+    const existing = await prisma.organization.findUnique({
+      where: { slug: candidate },
+      select: { id: true },
+    });
+    if (!existing) return candidate;
+    suffix += 1;
+    candidate = `${base}-${suffix}`;
+  }
+}
+
 export async function createOrganization(
   userId: string,
   name: string,
-  slug: string
+  slug?: string
 ) {
+  const resolvedSlug = slug ?? (await createUniqueOrganizationSlug(name));
   const trialEndsAt = new Date();
   trialEndsAt.setDate(trialEndsAt.getDate() + 5);
 
   const organization = await prisma.organization.create({
     data: {
       name,
-      slug,
+      slug: resolvedSlug,
       trialEndsAt,
       subscriptionStatus: "TRIALING",
       memberships: {
@@ -31,7 +48,7 @@ export async function createOrganization(
       entityId: organization.id,
       userId,
       organizationId: organization.id,
-      metadata: { name, slug } as object,
+      metadata: { name, slug: resolvedSlug } as object,
     },
   });
 

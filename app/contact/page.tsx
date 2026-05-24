@@ -3,6 +3,7 @@ import { Header } from "@/components/marketing/Header";
 import { Footer } from "@/components/marketing/Footer";
 import { ContactForm } from "@/components/marketing/ContactForm";
 import { BRAND } from "@/lib/branding";
+import { getAppUrl } from "@/lib/app-url";
 import { createMetadata } from "@/lib/seo";
 
 export const metadata = createMetadata({
@@ -11,38 +12,41 @@ export const metadata = createMetadata({
   path: "/contact",
 });
 
-const channels = [
-  {
-    icon: Mail,
-    title: "Sales",
-    description: "Pricing, demos and team rollouts.",
-    value: BRAND.salesEmail,
-    href: `mailto:${BRAND.salesEmail}`,
-  },
-  {
-    icon: MessageSquare,
-    title: "Support",
-    description: "Account, billing and product questions.",
-    value: BRAND.supportEmail,
-    href: `mailto:${BRAND.supportEmail}`,
-  },
-  {
-    icon: Phone,
-    title: "Response time",
-    description: "We reply within one business day, often sooner.",
-    value: "Mon–Fri, 09:00–18:00 CET",
-    href: null,
-  },
-  {
-    icon: Clock,
-    title: "Free trial",
-    description: `Start a ${BRAND.trialDays}-day trial — no card required.`,
-    value: "opervia.com/register",
-    href: "/register",
-  },
-];
-
 export default function ContactPage() {
+  const appUrl = getAppUrl();
+  const registerUrl = `${appUrl.replace(/^https?:\/\//, "")}/register`;
+
+  const channels = [
+    {
+      icon: Mail,
+      title: "Sales",
+      description: "Pricing, demos and team rollouts.",
+      value: BRAND.salesEmail,
+      href: `mailto:${BRAND.salesEmail}`,
+    },
+    {
+      icon: MessageSquare,
+      title: "Support",
+      description: "Account, billing and product questions.",
+      value: BRAND.supportEmail,
+      href: `mailto:${BRAND.supportEmail}`,
+    },
+    {
+      icon: Phone,
+      title: "Response time",
+      description: "We reply within one business day, often sooner.",
+      value: "Mon–Fri, 09:00–18:00 CET",
+      href: null,
+    },
+    {
+      icon: Clock,
+      title: "Free trial",
+      description: `Start a ${BRAND.trialDays}-day trial — no card required.`,
+      value: registerUrl,
+      href: "/register",
+    },
+  ];
+
   return (
     <>
       <Header />

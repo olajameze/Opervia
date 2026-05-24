@@ -1,27 +1,17 @@
+import { Suspense } from "react";
 import { getOrganizationContext } from "@/lib/auth-helpers";
-
 import { prisma } from "@/lib/db";
-
 import { DataTable } from "@/components/app/DataTable";
-
 import { StatCard } from "@/components/app/StatCard";
-
 import { Badge } from "@/components/ui/badge";
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-
 import { BillingActions } from "@/components/app/BillingActions";
-
+import { BillingStatusBanner } from "@/components/app/BillingStatusBanner";
 import { InvoiceForm, PaymentForm, StatusSelect } from "@/components/app/ModuleForms";
-
 import { BRAND } from "@/lib/branding";
-
-import { getEffectivePlan, getPlanDisplayName, hasActiveSubscription, isOnActiveTrial, getTrialDaysRemaining } from "@/lib/entitlements";
-
+import { getEffectivePlan, hasActiveSubscription, isOnActiveTrial, getTrialDaysRemaining } from "@/lib/entitlements";
 import { PLANS } from "@/lib/plans";
-
 import { formatCurrency, formatDate } from "@/lib/utils";
-
 import { CreditCard, FileText, CheckCircle } from "lucide-react";
 
 
@@ -98,10 +88,11 @@ export default async function BillingPage() {
         </div>
 
         <BillingActions organization={organization} />
-
       </div>
 
-
+      <Suspense fallback={null}>
+        <BillingStatusBanner />
+      </Suspense>
 
       <div className="grid gap-4 md:grid-cols-2">
 

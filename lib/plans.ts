@@ -147,10 +147,35 @@ export function planFromStripePriceId(priceId: string): SubscriptionPlan | null 
   return null;
 }
 
+export type SubscriptionOrg = Pick<
+  Organization,
+  | "subscriptionStatus"
+  | "subscriptionPlan"
+  | "trialEndsAt"
+  | "stripeSubscriptionId"
+  | "stripeCustomerId"
+>;
+
+export function hasStripeSubscription(
+  org: Pick<Organization, "stripeSubscriptionId">
+): boolean {
+  return Boolean(org.stripeSubscriptionId);
+}
+
+export function hasBillingPortalAccess(
+  org: Pick<Organization, "stripeCustomerId">
+): boolean {
+  return Boolean(org.stripeCustomerId);
+}
+
 export function hasActiveSubscription(
-  org: Pick<Organization, "subscriptionStatus" | "trialEndsAt">
+  org: Pick<Organization, "subscriptionStatus" | "trialEndsAt"> & {
+    stripeSubscriptionId?: string | null;
+  }
 ): boolean {
   if (org.subscriptionStatus === "ACTIVE") return true;
+  // Grace period while Stripe retries failed payments
+  if (org.subscriptionStatus === "PAST_DUE" && org.stripeSubscriptionId) return true;
   if (org.subscriptionStatus === "TRIALING" && org.trialEndsAt) {
     return org.trialEndsAt > new Date();
   }
@@ -251,6 +276,13 @@ export function isEnterprisePlan(org: PlanOrg): boolean {
 
 export function canExportData(org: PlanOrg): boolean {
   return isEnterprisePlan(org);
+}
+
+/** Baseline JSON export available to workspace owners on any plan (GDPR portability). */
+export function canExportWorkspaceData(
+  org: Pick<Organization, "subscriptionStatus" | "trialEndsAt">
+): boolean {
+  return hasActiveSubscription(org) || org.subscriptionStatus === "CANCELED";
 }
 
 export function getStaffUpgradeMessage(org: PlanOrg): string {

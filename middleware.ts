@@ -80,17 +80,17 @@ export default auth(async (req) => {
       pathname.includes("/api/auth/callback/credentials") ||
       pathname.endsWith("/api/auth/signin/credentials")
     ) {
-      const limited = ipRateLimit(req, "credentials-login", 15, 15 * 60 * 1000);
+      const limited = await ipRateLimit(req, "credentials-login", 15, 15 * 60 * 1000);
       if (limited) return withSecurityHeaders(limited);
     }
 
     if (pathname === "/api/register") {
-      const limited = ipRateLimit(req, "register", 10, 60 * 60 * 1000);
+      const limited = await ipRateLimit(req, "register", 10, 60 * 60 * 1000);
       if (limited) return withSecurityHeaders(limited);
     }
 
     if (pathname === "/api/contact") {
-      const limited = ipRateLimit(req, "contact", 8, 60 * 60 * 1000);
+      const limited = await ipRateLimit(req, "contact", 8, 60 * 60 * 1000);
       if (limited) return withSecurityHeaders(limited);
     }
   }

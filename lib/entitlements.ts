@@ -12,6 +12,8 @@ import {
   isFreelancerLimitReached,
   isTeamMemberLimitReached,
   hasActiveSubscription as orgHasActiveSubscription,
+  hasBillingPortalAccess,
+  hasStripeSubscription,
   getPlanDisplayName,
   isOnActiveTrial,
   getTrialDaysRemaining,
@@ -19,6 +21,7 @@ import {
   isTrialExpired,
   isEnterprisePlan,
   canExportData,
+  canExportWorkspaceData,
   getStaffUpgradeMessage,
   getFreelancerUpgradeMessage,
   INACTIVE_SUBSCRIPTION_PATHS,
@@ -28,10 +31,14 @@ import {
 export type { AppModule };
 
 export function hasActiveSubscription(
-  org: Pick<Organization, "subscriptionStatus" | "trialEndsAt">
+  org: Pick<Organization, "subscriptionStatus" | "trialEndsAt"> & {
+    stripeSubscriptionId?: string | null;
+  }
 ): boolean {
   return orgHasActiveSubscription(org);
 }
+
+export { hasBillingPortalAccess, hasStripeSubscription };
 
 export function canAccessModule(
   org: Pick<Organization, "subscriptionStatus" | "subscriptionPlan" | "trialEndsAt">,
@@ -58,6 +65,7 @@ export {
   isTrialExpired,
   isEnterprisePlan,
   canExportData,
+  canExportWorkspaceData,
   getStaffUpgradeMessage,
   getFreelancerUpgradeMessage,
   INACTIVE_SUBSCRIPTION_PATHS,

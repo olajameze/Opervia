@@ -14,7 +14,7 @@ type PublicFormGuardInput = {
 export async function guardPublicForm(input: PublicFormGuardInput): Promise<NextResponse | null> {
   const ipLimit = input.ipLimit ?? { limit: 20, windowMs: 60 * 60 * 1000 };
 
-  const rateLimited = ipRateLimit(input.req, input.action, ipLimit.limit, ipLimit.windowMs);
+  const rateLimited = await ipRateLimit(input.req, input.action, ipLimit.limit, ipLimit.windowMs);
   if (rateLimited) return rateLimited;
 
   if (isHoneypotTriggered(input.body[HONEYPOT_FIELD])) {

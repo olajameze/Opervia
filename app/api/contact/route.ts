@@ -50,7 +50,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid submission" }, { status: 400 });
   }
 
-  const rateLimited = ipAndIdentifierRateLimit(req, "contact", payload.email, {
+  const rateLimited = await ipAndIdentifierRateLimit(req, "contact", payload.email, {
     ip: { limit: 8, windowMs: 60 * 60 * 1000 },
     id: { limit: 3, windowMs: 60 * 60 * 1000 },
   });

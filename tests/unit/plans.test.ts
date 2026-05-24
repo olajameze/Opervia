@@ -11,6 +11,7 @@ import {
   isFreelancerLimitReached,
   isEnterprisePlan,
   canExportData,
+  canExportWorkspaceData,
   isTrialExpired,
   subscriptionIsWritable,
   INACTIVE_SUBSCRIPTION_PATHS,
@@ -111,6 +112,25 @@ describe("entitlements", () => {
     expect(hasActiveSubscription(expiredOrg)).toBe(false);
     expect(canAccessModule(expiredOrg, "billing")).toBe(true);
     expect(canAccessModule(expiredOrg, "rentals")).toBe(false);
+  });
+
+  it("allows PAST_DUE subscriptions during Stripe retry window", () => {
+    const pastDueOrg = {
+      subscriptionStatus: "PAST_DUE" as const,
+      trialEndsAt: null,
+      stripeSubscriptionId: "sub_123",
+    };
+    expect(hasActiveSubscription(pastDueOrg)).toBe(true);
+  });
+
+  it("allows workspace export for active and canceled orgs", () => {
+    expect(canExportWorkspaceData(starterOrg)).toBe(true);
+    expect(
+      canExportWorkspaceData({
+        subscriptionStatus: "CANCELED",
+        trialEndsAt: null,
+      })
+    ).toBe(true);
   });
 
   it("identifies expired trial state", () => {

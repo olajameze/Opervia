@@ -3,12 +3,16 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { requireSuperAdminApi } from "@/lib/super-admin";
 import { verifyTotpCode } from "@/lib/mfa/totp";
+import { ipRateLimit } from "@/lib/security/rate-limit";
 
 const schema = z.object({
   code: z.string().min(6).max(8),
 });
 
 export async function POST(req: Request) {
+  const limited = await ipRateLimit(req, "mfa-verify", 10, 15 * 60 * 1000);
+  if (limited) return limited;
+
   const ctx = await requireSuperAdminApi({ skipMfa: true });
   if ("error" in ctx) return ctx.error;
 

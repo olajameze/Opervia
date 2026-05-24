@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { createOrganization, slugify } from "@/lib/services/organization";
+import { createOrganization } from "@/lib/services/organization";
 import { z } from "zod";
 
 const onboardingSchema = z.object({
@@ -16,15 +16,10 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { organizationName } = onboardingSchema.parse(body);
-    const slug = slugify(organizationName);
 
-    const organization = await createOrganization(
-      session.user.id,
-      organizationName,
-      slug
-    );
+    const organization = await createOrganization(session.user.id, organizationName);
 
-    return NextResponse.json({ organizationId: organization.id, slug });
+    return NextResponse.json({ organizationId: organization.id, slug: organization.slug });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.errors }, { status: 400 });
