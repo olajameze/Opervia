@@ -4,6 +4,7 @@ import { requireSuperAdmin } from "@/lib/super-admin";
 import { createMetadata } from "@/lib/seo";
 import { BRAND } from "@/lib/branding";
 import { LinkButton } from "@/components/ui/link-button";
+import { SignOutButton } from "@/components/auth/SignOutButton";
 
 export const metadata = createMetadata({
   title: `Super admin security — ${BRAND.name}`,
@@ -23,9 +24,12 @@ export default async function SuperAdminSecurityPage() {
               Harden access to {BRAND.name} platform administration.
             </p>
           </div>
-          <LinkButton href="/super-admin" variant="outline">
-            Back to admin
-          </LinkButton>
+          <div className="flex items-center gap-2">
+            <LinkButton href="/super-admin" variant="outline">
+              Back to admin
+            </LinkButton>
+            <SignOutButton />
+          </div>
         </div>
         <SuperAdminSecurityPanel />
         <p className="text-sm text-muted-foreground">

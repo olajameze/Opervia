@@ -3,6 +3,7 @@ import { requireSuperAdmin } from "@/lib/super-admin";
 import { createMetadata } from "@/lib/seo";
 import { LinkButton } from "@/components/ui/link-button";
 import { AdminUserTable } from "@/components/admin/AdminUserTable";
+import { SuperAdminHeader } from "@/components/admin/SuperAdminHeader";
 import { prisma } from "@/lib/db";
 import { StatCard } from "@/components/app/StatCard";
 import { Users, Building2, AlertTriangle, CreditCard } from "lucide-react";
@@ -51,25 +52,17 @@ export default async function SuperAdminPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
-          <div>
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Platform</p>
-            <h1 className="text-lg font-bold">Super Admin</h1>
-          </div>
-          <div className="flex gap-2">
-            <LinkButton href="/super-admin/security" variant="outline" size="sm">
-              Security
-            </LinkButton>
-            <LinkButton href="/maintenance" variant="outline" size="sm">
-              Maintenance Console
-            </LinkButton>
-            <LinkButton href="/dashboard" variant="ghost" size="sm">
-              App
-            </LinkButton>
-          </div>
-        </div>
-      </header>
+      <SuperAdminHeader eyebrow="Platform" title="Super Admin">
+        <LinkButton href="/super-admin/security" variant="outline" size="sm">
+          Security
+        </LinkButton>
+        <LinkButton href="/maintenance" variant="outline" size="sm">
+          Maintenance Console
+        </LinkButton>
+        <LinkButton href="/dashboard" variant="ghost" size="sm">
+          App
+        </LinkButton>
+      </SuperAdminHeader>
 
       <main className="container mx-auto px-4 md:px-6 py-8 space-y-8">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

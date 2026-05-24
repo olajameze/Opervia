@@ -3,6 +3,7 @@ import { getSystemSettings } from "@/lib/system-settings";
 import { createMetadata } from "@/lib/seo";
 import { LinkButton } from "@/components/ui/link-button";
 import { MaintenanceConsole } from "@/components/admin/MaintenanceConsole";
+import { SuperAdminHeader } from "@/components/admin/SuperAdminHeader";
 import { prisma } from "@/lib/db";
 import { StatCard } from "@/components/app/StatCard";
 import { Activity, Database, Server, Users } from "lucide-react";
@@ -29,22 +30,14 @@ export default async function MaintenancePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
-          <div>
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Developer</p>
-            <h1 className="text-lg font-bold">Maintenance Console</h1>
-          </div>
-          <div className="flex gap-2">
-            <LinkButton href="/super-admin" variant="outline" size="sm">
-              Super Admin
-            </LinkButton>
-            <LinkButton href="/dashboard" variant="ghost" size="sm">
-              App
-            </LinkButton>
-          </div>
-        </div>
-      </header>
+      <SuperAdminHeader eyebrow="Developer" title="Maintenance Console">
+        <LinkButton href="/super-admin" variant="outline" size="sm">
+          Super Admin
+        </LinkButton>
+        <LinkButton href="/dashboard" variant="ghost" size="sm">
+          App
+        </LinkButton>
+      </SuperAdminHeader>
 
       <main className="container mx-auto px-4 md:px-6 py-8 space-y-8">
         <MaintenanceConsole
