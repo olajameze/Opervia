@@ -6,6 +6,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { BRAND } from "@/lib/branding";
 import { superAdminEmails } from "@/lib/super-admin";
+import { canSignInDuringMaintenance } from "@/lib/maintenance";
 import { authConfig } from "@/auth.config";
 import {
   sendNewSignupAdminNotification,
@@ -142,6 +143,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           select: { id: true },
         });
         if (frozenMembership) return false;
+
+        if (!(await canSignInDuringMaintenance(user.id))) return false;
       }
 
       return true;

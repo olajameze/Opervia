@@ -74,25 +74,6 @@ export async function requireSuperAdminApi(options?: SuperAdminGuardOptions) {
   return { session, userId: session.user.id };
 }
 
-export const MAINTENANCE_EXEMPT_PREFIXES = [
-  "/under-maintenance",
-  "/account-suspended",
-  "/super-admin",
-  "/maintenance",
-  "/login",
-  "/forgot-password",
-  "/reset-password",
-  "/api/auth",
-  "/api/admin",
-  "/api/stripe/webhook",
-];
-
-export function isMaintenanceExemptPath(pathname: string): boolean {
-  return MAINTENANCE_EXEMPT_PREFIXES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
-  );
-}
-
 export function isSuperAdminMfaExemptPath(pathname: string): boolean {
   return (
     pathname === "/super-admin/mfa" ||
@@ -100,3 +81,8 @@ export function isSuperAdminMfaExemptPath(pathname: string): boolean {
     pathname.startsWith("/api/admin/mfa")
   );
 }
+
+export {
+  isMaintenanceExemptPath,
+  MAINTENANCE_EXEMPT_PAGE_PREFIXES as MAINTENANCE_EXEMPT_PREFIXES,
+} from "@/lib/maintenance-paths";

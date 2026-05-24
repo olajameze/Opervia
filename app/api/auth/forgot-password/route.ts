@@ -8,6 +8,7 @@ import { getAppUrl } from "@/lib/app-url";
 import { HONEYPOT_FIELD } from "@/lib/security/honeypot";
 import { guardPublicForm } from "@/lib/security/public-form-guard";
 import { ipAndIdentifierRateLimit } from "@/lib/security/rate-limit";
+import { guardPublicAccessDuringMaintenance } from "@/lib/maintenance";
 
 const schema = z.object({
   email: z.string().email(),
@@ -18,6 +19,9 @@ const schema = z.object({
 const TOKEN_TTL_MS = 60 * 60 * 1000;
 
 export async function POST(req: Request) {
+  const maintenanceBlocked = await guardPublicAccessDuringMaintenance();
+  if (maintenanceBlocked) return maintenanceBlocked;
+
   let body: unknown;
   try {
     body = await req.json();

@@ -2,12 +2,16 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { verifyEmailWithToken } from "@/lib/registration-emails";
 import { ipRateLimit } from "@/lib/security/rate-limit";
+import { guardPublicAccessDuringMaintenance } from "@/lib/maintenance";
 
 const schema = z.object({
   token: z.string().min(1),
 });
 
 export async function POST(req: Request) {
+  const maintenanceBlocked = await guardPublicAccessDuringMaintenance();
+  if (maintenanceBlocked) return maintenanceBlocked;
+
   const rateLimited = ipRateLimit(req, "verify-email", 30, 60 * 60 * 1000);
   if (rateLimited) return rateLimited;
   let token: string;

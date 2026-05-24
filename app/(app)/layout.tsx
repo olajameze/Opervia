@@ -1,4 +1,5 @@
 import { getOrganizationContext, enforceSubscriptionAccess } from "@/lib/auth-helpers";
+import { enforceMaintenanceMode } from "@/lib/maintenance-enforcement";
 import { AppSidebar, MobileNav } from "@/components/app/AppSidebar";
 import { AppHeader } from "@/components/app/AppHeader";
 import { AppExperienceBanners } from "@/components/app/AppExperienceBanners";
@@ -13,6 +14,7 @@ import {
 export const metadata = createMetadata({ noIndex: true });
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  await enforceMaintenanceMode();
   const { session, organization } = await getOrganizationContext();
   enforceSubscriptionAccess(organization);
 

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { passwordSchema } from "@/lib/security/password";
 import { ipRateLimit } from "@/lib/security/rate-limit";
+import { guardPublicAccessDuringMaintenance } from "@/lib/maintenance";
 
 const schema = z.object({
   token: z.string().min(1),
@@ -11,6 +12,9 @@ const schema = z.object({
 });
 
 export async function POST(req: Request) {
+  const maintenanceBlocked = await guardPublicAccessDuringMaintenance();
+  if (maintenanceBlocked) return maintenanceBlocked;
+
   const rateLimited = ipRateLimit(req, "reset-password", 15, 60 * 60 * 1000);
   if (rateLimited) return rateLimited;
   let body: z.infer<typeof schema>;

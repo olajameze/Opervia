@@ -14,6 +14,7 @@ import { guardPublicForm } from "@/lib/security/public-form-guard";
 import { passwordSchema } from "@/lib/security/password";
 import { ipAndIdentifierRateLimit } from "@/lib/security/rate-limit";
 import { isReservedSuperAdminEmail } from "@/lib/super-admin";
+import { guardPublicAccessDuringMaintenance } from "@/lib/maintenance";
 
 const registerSchema = z.object({
   name: z.string().trim().min(1).max(120),
@@ -28,6 +29,9 @@ function genericRegisterResponse(requiresEmailVerification = true) {
 }
 
 export async function POST(req: Request) {
+  const maintenanceBlocked = await guardPublicAccessDuringMaintenance();
+  if (maintenanceBlocked) return maintenanceBlocked;
+
   let body: unknown;
   try {
     body = await req.json();

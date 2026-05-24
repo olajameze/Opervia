@@ -36,11 +36,27 @@ export function LoginForm({ showGoogleAuth = false }: { showGoogleAuth?: boolean
 
     if (result?.error) {
       setUnverifiedEmail(email);
-      setError(
+      let message =
         result.error === "AccessDenied"
           ? "Please verify your email before signing in."
-          : "Invalid email or password. If you haven't verified your email yet, use the link below."
-      );
+          : "Invalid email or password. If you haven't verified your email yet, use the link below.";
+
+      try {
+        const maintenanceRes = await fetch("/api/system/maintenance", { cache: "no-store" });
+        if (maintenanceRes.ok) {
+          const { maintenanceMode } = (await maintenanceRes.json()) as {
+            maintenanceMode?: boolean;
+          };
+          if (maintenanceMode) {
+            message =
+              "Opervia is under maintenance. Only platform administrators can sign in right now.";
+          }
+        }
+      } catch {
+        // Keep the default auth error message.
+      }
+
+      setError(message);
       setLoading(false);
       return;
     }

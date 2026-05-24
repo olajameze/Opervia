@@ -3,8 +3,24 @@ import { NextResponse } from "next/server";
 import { authConfig } from "@/auth.config";
 import { applySecurityHeaders } from "@/lib/security/headers";
 import { ipRateLimit } from "@/lib/security/rate-limit";
+import {
+  isMaintenanceExemptPath,
+  maintenanceModeJsonResponse,
+} from "@/lib/maintenance-paths";
 
 const { auth } = NextAuth(authConfig);
+
+async function isMaintenanceModeActive(req: Request): Promise<boolean> {
+  try {
+    const url = new URL("/api/system/maintenance", req.url);
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) return false;
+    const data = (await res.json()) as { maintenanceMode?: boolean };
+    return Boolean(data.maintenanceMode);
+  } catch {
+    return false;
+  }
+}
 
 function isSuperAdminMfaExemptPath(pathname: string) {
   return (
@@ -42,10 +58,22 @@ function withSecurityHeaders(response: NextResponse) {
   return response;
 }
 
-export default auth((req) => {
+export default auth(async (req) => {
   const { pathname } = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-pathname", pathname);
+
+  if (!isMaintenanceExemptPath(pathname)) {
+    const maintenanceActive = await isMaintenanceModeActive(req);
+    if (maintenanceActive && !req.auth?.user?.isSuperAdmin) {
+      if (pathname.startsWith("/api/")) {
+        return withSecurityHeaders(maintenanceModeJsonResponse());
+      }
+      return withSecurityHeaders(
+        NextResponse.redirect(new URL("/under-maintenance", req.url))
+      );
+    }
+  }
 
   if (req.method === "POST") {
     if (
