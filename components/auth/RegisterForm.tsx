@@ -28,11 +28,18 @@ export function RegisterForm({
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError("");
+
+    if (!acceptedTerms) {
+      setError("You must accept the Terms of Service and Privacy Policy.");
+      setLoading(false);
+      return;
+    }
 
     if (isTurnstileEnabled() && !turnstileToken) {
       setError("Complete the security check before continuing.");
@@ -129,9 +136,31 @@ export function RegisterForm({
             </p>
           </div>
           <TurnstileWidget onTokenChange={setTurnstileToken} />
+          <div className="flex items-start gap-2">
+            <input
+              id="accept-terms"
+              name="acceptTerms"
+              type="checkbox"
+              required
+              checked={acceptedTerms}
+              onChange={(e) => setAcceptedTerms(e.target.checked)}
+              className="mt-1 h-4 w-4 rounded border-input accent-primary"
+            />
+            <Label htmlFor="accept-terms" className="text-sm font-normal leading-snug">
+              I agree to the{" "}
+              <Link href="/terms" className="text-primary hover:underline" target="_blank">
+                Terms of Service
+              </Link>{" "}
+              and{" "}
+              <Link href="/privacy" className="text-primary hover:underline" target="_blank">
+                Privacy Policy
+              </Link>
+              .
+            </Label>
+          </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
           <div className="flex justify-center pt-1">
-            <Button type="submit" className="min-w-[200px]" disabled={loading}>
+            <Button type="submit" className="min-w-[200px]" disabled={loading || !acceptedTerms}>
               {loading ? "Creating account..." : inviteToken ? "Create account & continue" : HERO.primaryCta}
             </Button>
           </div>
