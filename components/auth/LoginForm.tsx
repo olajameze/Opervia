@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { signIn, signOut } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +20,6 @@ export function LoginForm({
   signedInEmail?: string;
   defaultCallbackUrl?: string;
 }) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? defaultCallbackUrl;
   const verified = searchParams.get("verified") === "1";
@@ -69,8 +68,7 @@ export function LoginForm({
       return;
     }
 
-    router.push(callbackUrl);
-    router.refresh();
+    window.location.assign(callbackUrl);
   }
 
   async function handleResendVerification() {

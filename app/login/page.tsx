@@ -29,7 +29,13 @@ export default async function LoginPage() {
   }
 
   return (
-    <Suspense>
+    <Suspense
+      fallback={
+        <div className="w-full max-w-md rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground shadow-sm">
+          Loading sign in…
+        </div>
+      }
+    >
       <LoginForm
         showGoogleAuth={showGoogleAuth}
         signedInEmail={maintenanceOn ? session?.user?.email ?? undefined : undefined}

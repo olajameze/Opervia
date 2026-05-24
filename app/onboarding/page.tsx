@@ -18,13 +18,21 @@ export default async function OnboardingPage() {
 
   if (await isSuperAdminUser(session.user.id)) redirect("/super-admin");
 
-  if (session.user.organizationId) redirect("/dashboard");
-
   const membership = await prisma.membership.findFirst({
     where: { userId: session.user.id },
-    select: { id: true },
+    include: { organization: { select: { id: true } } },
+    orderBy: { createdAt: "asc" },
   });
-  if (membership) redirect("/dashboard");
+
+  if (membership?.organization) redirect("/dashboard");
+
+  if (session.user.organizationId) {
+    const organization = await prisma.organization.findUnique({
+      where: { id: session.user.organizationId },
+      select: { id: true },
+    });
+    if (organization) redirect("/dashboard");
+  }
 
   return <OnboardingForm />;
 }

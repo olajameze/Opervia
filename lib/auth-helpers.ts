@@ -30,7 +30,16 @@ export async function requireOrganization() {
     redirect("/super-admin");
   }
 
-  if (session.user.organizationId) return session;
+  if (session.user.organizationId) {
+    const organization = await prisma.organization.findUnique({
+      where: { id: session.user.organizationId },
+      select: { id: true, frozenAt: true },
+    });
+
+    if (organization && !organization.frozenAt) {
+      return session;
+    }
+  }
 
   // JWT can lag right after onboarding — resolve membership from the database.
   const membership = await prisma.membership.findFirst({
@@ -68,10 +77,28 @@ export async function requireOrganization() {
 
 export async function getOrganizationContext() {
   const session = await requireOrganization();
-  const organization = await prisma.organization.findUnique({
-    where: { id: session.user.organizationId! },
-  });
-  if (!organization) redirect("/onboarding");
+
+  let organization = session.user.organizationId
+    ? await prisma.organization.findUnique({
+        where: { id: session.user.organizationId },
+      })
+    : null;
+
+  if (!organization) {
+    const membership = await prisma.membership.findFirst({
+      where: { userId: session.user.id },
+      include: { organization: true },
+      orderBy: { createdAt: "asc" },
+    });
+
+    if (!membership) redirect("/onboarding");
+
+    organization = membership.organization;
+    session.user.organizationId = membership.organizationId;
+    session.user.role = membership.role;
+    session.user.organizationName = membership.organization.name;
+  }
+
   if (organization.frozenAt) redirect("/account-suspended");
   return { session, organization };
 }
