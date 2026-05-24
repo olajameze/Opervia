@@ -116,6 +116,40 @@ export default auth(async (req) => {
     pathname.startsWith("/settings");
 
   if (isAuthRoute && isLoggedIn) {
+    if (pathname === "/login") {
+      const maintenanceActive = await isMaintenanceModeActive(req);
+
+      if (maintenanceActive) {
+        if (req.auth?.user?.isSuperAdmin) {
+          return withSecurityHeaders(
+            NextResponse.redirect(new URL("/super-admin", req.url))
+          );
+        }
+        // Keep the login page available so admins can sign out and back in.
+        return withSecurityHeaders(
+          NextResponse.next({
+            request: { headers: requestHeaders },
+          })
+        );
+      }
+
+      if (req.auth?.user?.isSuperAdmin) {
+        return withSecurityHeaders(
+          NextResponse.redirect(new URL("/super-admin", req.url))
+        );
+      }
+
+      if (req.auth?.user?.organizationId) {
+        return withSecurityHeaders(
+          NextResponse.redirect(new URL("/dashboard", req.url))
+        );
+      }
+
+      return withSecurityHeaders(
+        NextResponse.redirect(new URL("/onboarding", req.url))
+      );
+    }
+
     return withSecurityHeaders(NextResponse.redirect(new URL("/dashboard", req.url)));
   }
 

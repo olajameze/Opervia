@@ -27,7 +27,7 @@ export default async function UnderMaintenancePage() {
           <h1 className="text-2xl font-bold">{BRAND.name} is under maintenance</h1>
           <p className="text-muted-foreground">{message}</p>
         </div>
-        <LinkButton href="/login" variant="outline">
+        <LinkButton href="/login?callbackUrl=/super-admin" variant="outline">
           Admin sign in
         </LinkButton>
       </div>

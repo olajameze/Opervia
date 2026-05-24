@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, signOut } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -11,10 +11,18 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { BRAND, HERO } from "@/lib/branding";
 
-export function LoginForm({ showGoogleAuth = false }: { showGoogleAuth?: boolean }) {
+export function LoginForm({
+  showGoogleAuth = false,
+  signedInEmail,
+  defaultCallbackUrl = "/dashboard",
+}: {
+  showGoogleAuth?: boolean;
+  signedInEmail?: string;
+  defaultCallbackUrl?: string;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
+  const callbackUrl = searchParams.get("callbackUrl") ?? defaultCallbackUrl;
   const verified = searchParams.get("verified") === "1";
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -83,6 +91,22 @@ export function LoginForm({ showGoogleAuth = false }: { showGoogleAuth?: boolean
         <CardDescription>{BRAND.tagline}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {signedInEmail && (
+          <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-950 space-y-2">
+            <p>
+              Signed in as <span className="font-medium">{signedInEmail}</span>. Sign out to use a
+              platform administrator account.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => signOut({ callbackUrl: "/login" })}
+            >
+              Sign out
+            </Button>
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>

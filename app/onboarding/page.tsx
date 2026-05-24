@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { isSuperAdminUser } from "@/lib/super-admin";
 import { OnboardingForm } from "@/components/auth/OnboardingForm";
 import { createMetadata } from "@/lib/seo";
 import { BRAND } from "@/lib/branding";
@@ -14,6 +15,8 @@ export const metadata = createMetadata({
 export default async function OnboardingPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
+
+  if (await isSuperAdminUser(session.user.id)) redirect("/super-admin");
 
   if (session.user.organizationId) redirect("/dashboard");
 

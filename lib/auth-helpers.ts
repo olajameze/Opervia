@@ -11,6 +11,7 @@ import {
 } from "@/lib/entitlements";
 import { canRoleAccessModule } from "@/lib/roles";
 import { normalizeInviteEmail } from "@/lib/invites";
+import { isSuperAdminUser } from "@/lib/super-admin";
 
 export async function getSession() {
   return auth();
@@ -24,6 +25,11 @@ export async function requireAuth() {
 
 export async function requireOrganization() {
   const session = await requireAuth();
+
+  if (await isSuperAdminUser(session.user.id)) {
+    redirect("/super-admin");
+  }
+
   if (session.user.organizationId) return session;
 
   // JWT can lag right after onboarding — resolve membership from the database.
