@@ -6,6 +6,7 @@ import { Pricing } from "@/components/marketing/Pricing";
 import { FAQ, faqs } from "@/components/marketing/FAQ";
 import { CTA } from "@/components/marketing/CTA";
 import { EmergencyRibbon } from "@/components/marketing/EmergencyRibbon";
+import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import {
   softwareApplicationSchema,
   organizationSchema,
@@ -96,6 +97,7 @@ export default function HomePage() {
       </main>
       <Footer />
       <EmergencyRibbon />
+      <InstallPrompt />
     </>
   );
 }
