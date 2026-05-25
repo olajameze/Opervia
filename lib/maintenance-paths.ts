@@ -7,6 +7,7 @@ export const MAINTENANCE_EXEMPT_PAGE_PREFIXES = [
   "/super-admin",
   "/maintenance",
   "/login",
+  "/offline",
 ] as const;
 
 /** API routes that stay available during maintenance. Auth is allowed; sign-in is gated in auth.ts. */

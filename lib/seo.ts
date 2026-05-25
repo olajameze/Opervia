@@ -43,8 +43,17 @@ export function createMetadata({
     robots: noIndex ? { index: false, follow: false } : undefined,
     applicationName: BRAND.name,
     manifest: "/manifest.json",
+    appleWebApp: {
+      capable: true,
+      title: BRAND.name,
+      statusBarStyle: "default",
+    },
     icons: {
-      icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+      icon: [
+        { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+        { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+        { url: "/icon.svg", type: "image/svg+xml" },
+      ],
       apple: [{ url: "/apple-icon.svg", sizes: "180x180", type: "image/svg+xml" }],
     },
   };

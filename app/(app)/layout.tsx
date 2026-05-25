@@ -3,6 +3,7 @@ import { enforceMaintenanceMode } from "@/lib/maintenance-enforcement";
 import { AppSidebar, MobileNav } from "@/components/app/AppSidebar";
 import { AppHeader } from "@/components/app/AppHeader";
 import { AppExperienceBanners } from "@/components/app/AppExperienceBanners";
+import { AppOfflineGate } from "@/components/pwa/AppOfflineGate";
 import { createMetadata } from "@/lib/seo";
 import {
   getTrialDaysRemaining,
@@ -33,7 +34,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           showTrialEnding={onTrial && isTrialEndingSoon(organization)}
           subscriptionInactive={subscriptionInactive}
         />
-        <main className="flex-1 p-6 overflow-auto">{children}</main>
+        <main className="flex-1 p-6 overflow-auto">
+          <AppOfflineGate>{children}</AppOfflineGate>
+        </main>
       </div>
       <MobileNav organization={organization} role={session.user.role} />
     </div>

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { offlineFetch } from "@/lib/pwa/offline-fetch";
 
 export function DeleteButton({
   endpoint,
@@ -17,9 +18,9 @@ export function DeleteButton({
   async function handleDelete() {
     if (!confirm("Are you sure you want to delete this item?")) return;
     setLoading(true);
-    const res = await fetch(endpoint, { method: "DELETE" });
+    const res = await offlineFetch(endpoint, { method: "DELETE" });
     setLoading(false);
-    if (res.ok) router.refresh();
+    if (res.ok || res.status === 202) router.refresh();
     else alert("Delete failed");
   }
 
@@ -37,9 +38,9 @@ export function ReleaseAllocationButton({ allocationId }: { allocationId: string
   async function handleRelease() {
     if (!confirm("Release this equipment allocation?")) return;
     setLoading(true);
-    const res = await fetch(`/api/allocations/${allocationId}`, { method: "PATCH" });
+    const res = await offlineFetch(`/api/allocations/${allocationId}`, { method: "PATCH" });
     setLoading(false);
-    if (res.ok) router.refresh();
+    if (res.ok || res.status === 202) router.refresh();
     else alert("Release failed");
   }
 
@@ -127,14 +128,14 @@ function useResourceForm(endpoint: string) {
       body[key] = String(value);
     });
 
-    const res = await fetch(endpoint, {
+    const res = await offlineFetch(endpoint, {
       method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
 
     setLoading(false);
-    if (!res.ok) {
+    if (!res.ok && res.status !== 202) {
       const data = await res.json();
       setError(data.error ?? "Save failed");
       return;
@@ -499,7 +500,7 @@ export function WorkflowToggle({
 
   async function toggle() {
     setLoading(true);
-    await fetch(`/api/workflows/${id}`, {
+    await offlineFetch(`/api/workflows/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ enabled: !enabled }),
@@ -535,7 +536,7 @@ export function StatusSelect({
 
   async function handleChange(nextValue: string) {
     setLoading(true);
-    await fetch(endpoint, {
+    await offlineFetch(endpoint, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ [field]: nextValue }),
