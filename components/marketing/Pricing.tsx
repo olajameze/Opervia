@@ -45,7 +45,7 @@ export function Pricing() {
                   }
                 }}
                 className={cn(
-                  "group relative cursor-pointer overflow-hidden transition-all duration-300 ease-out",
+                  "group relative cursor-pointer overflow-visible transition-all duration-300 ease-out",
                   "hover:-translate-y-2 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                   plan.highlighted && "border-primary",
                   isFocused
@@ -55,17 +55,17 @@ export function Pricing() {
               >
                 <div
                   className={cn(
-                    "pointer-events-none absolute inset-0 bg-gradient-to-b from-primary/10 via-primary/5 to-transparent transition-opacity duration-300",
+                    "pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit] bg-gradient-to-b from-primary/10 via-primary/5 to-transparent transition-opacity duration-300",
                     isFocused ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                   )}
                   aria-hidden
                 />
                 {plan.highlighted && (
-                  <Badge className="absolute -top-3 left-1/2 z-10 -translate-x-1/2 shadow-sm">
+                  <Badge className="absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-1/2 border-primary bg-background px-3 py-1 text-primary shadow-sm">
                     Most Popular
                   </Badge>
                 )}
-                <CardHeader className="relative">
+                <CardHeader className={cn("relative", plan.highlighted && "pt-8")}>
                   <CardTitle className="transition-colors group-hover:text-primary">
                     {plan.name}
                   </CardTitle>
