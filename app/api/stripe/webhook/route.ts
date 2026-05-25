@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { getStripe } from "@/lib/stripe";
 import { prisma } from "@/lib/db";
 import { planFromStripePriceId } from "@/lib/plans";
+import { notifyOrganizationOwnersSubscriptionCanceled } from "@/lib/account-emails";
 import type Stripe from "stripe";
 import type { SubscriptionPlan, SubscriptionStatus } from "@prisma/client";
 
@@ -107,6 +108,19 @@ export async function POST(req: Request) {
       case "customer.subscription.deleted": {
         const sub = event.data.object as Stripe.Subscription;
         if (event.type === "customer.subscription.deleted") {
+          const org = await prisma.organization.findFirst({
+            where: { stripeSubscriptionId: sub.id },
+          });
+
+          if (org) {
+            await notifyOrganizationOwnersSubscriptionCanceled({
+              organizationId: org.id,
+              organizationName: org.name,
+              plan: org.subscriptionPlan,
+              idempotencyKey: `subscription-canceled/${sub.id}`,
+            });
+          }
+
           await prisma.organization.updateMany({
             where: { stripeSubscriptionId: sub.id },
             data: {

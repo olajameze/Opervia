@@ -3,6 +3,11 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { requireSuperAdminApi } from "@/lib/super-admin";
 import { getStripe, isStripeConfigured } from "@/lib/stripe";
+import {
+  getOrganizationOwners,
+  notifyAccountDeleted,
+  notifyOrganizationOwnersSubscriptionCanceled,
+} from "@/lib/account-emails";
 
 const schema = z.object({
   action: z.enum(["freeze", "unfreeze", "cancel_plan"]),
@@ -71,6 +76,15 @@ export async function PATCH(
       },
     });
 
+    await notifyOrganizationOwnersSubscriptionCanceled({
+      organizationId: org.id,
+      organizationName: org.name,
+      plan: org.subscriptionPlan,
+      idempotencyKey: org.stripeSubscriptionId
+        ? `subscription-canceled/${org.stripeSubscriptionId}`
+        : `subscription-canceled/admin/${org.id}`,
+    });
+
     return NextResponse.json({ ...updated, stripe: stripeResult });
   } catch {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
@@ -95,8 +109,15 @@ export async function DELETE(
   }
 
   const stripeResult = await cancelStripeSubscription(org.stripeSubscriptionId);
+  const owners = await getOrganizationOwners(org.id);
 
   await prisma.organization.delete({ where: { id: params.id } });
+
+  await notifyAccountDeleted({
+    organizationName: org.name,
+    recipients: owners,
+    idempotencyKey: `account-deleted/admin/${org.id}`,
+  });
 
   return NextResponse.json({ ok: true, stripe: stripeResult });
 }

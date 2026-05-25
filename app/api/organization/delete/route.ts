@@ -3,6 +3,10 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { getStripe, isStripeConfigured } from "@/lib/stripe";
+import {
+  getOrganizationOwners,
+  notifyAccountDeleted,
+} from "@/lib/account-emails";
 import { Role } from "@prisma/client";
 
 const schema = z.object({
@@ -44,6 +48,8 @@ export async function DELETE(req: Request) {
     );
   }
 
+  const owners = await getOrganizationOwners(organization.id);
+
   if (organization.stripeSubscriptionId && isStripeConfigured()) {
     try {
       await getStripe().subscriptions.cancel(organization.stripeSubscriptionId);
@@ -54,6 +60,19 @@ export async function DELETE(req: Request) {
   }
 
   await prisma.organization.delete({ where: { id: organization.id } });
+
+  await notifyAccountDeleted({
+    organizationName: organization.name,
+    recipients: owners.length
+      ? owners
+      : [
+          {
+            email: session.user.email ?? "",
+            name: session.user.name ?? session.user.email ?? "there",
+          },
+        ].filter((recipient) => recipient.email),
+    idempotencyKey: `account-deleted/${organization.id}`,
+  });
 
   return NextResponse.json({ ok: true });
 }
