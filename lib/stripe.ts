@@ -22,6 +22,21 @@ export function isStripeConfigured(): boolean {
   return Boolean(process.env.STRIPE_SECRET_KEY);
 }
 
+export function needsSubscriptionSetup(
+  org: Pick<{ stripeSubscriptionId: string | null }, "stripeSubscriptionId">
+): boolean {
+  return isStripeConfigured() && !org.stripeSubscriptionId;
+}
+
+export function buildSubscriptionTrialData(
+  trialPeriodDays?: number,
+  trialEnd?: number
+): { trial_period_days?: number; trial_end?: number } {
+  if (trialEnd) return { trial_end: trialEnd };
+  if (trialPeriodDays) return { trial_period_days: trialPeriodDays };
+  return {};
+}
+
 export async function createCheckoutSession({
   customerId,
   priceId,
@@ -29,6 +44,8 @@ export async function createCheckoutSession({
   plan,
   successUrl,
   cancelUrl,
+  trialPeriodDays,
+  trialEnd,
 }: {
   customerId?: string;
   priceId: string;
@@ -36,16 +53,20 @@ export async function createCheckoutSession({
   plan: SubscriptionPlan;
   successUrl: string;
   cancelUrl: string;
+  trialPeriodDays?: number;
+  /** Unix timestamp — use for remaining app trial on legacy orgs. */
+  trialEnd?: number;
 }) {
-  // App-side free trial is handled at signup — Stripe checkout charges immediately.
+  const subscriptionData: Stripe.Checkout.SessionCreateParams.SubscriptionData = {
+    metadata: { organizationId, plan },
+    ...buildSubscriptionTrialData(trialPeriodDays, trialEnd),
+  };
+
   return getStripe().checkout.sessions.create({
     ...(customerId ? { customer: customerId } : {}),
     mode: "subscription",
-    payment_method_types: ["card"],
     line_items: [{ price: priceId, quantity: 1 }],
-    subscription_data: {
-      metadata: { organizationId, plan },
-    },
+    subscription_data: subscriptionData,
     metadata: { organizationId, plan },
     success_url: successUrl,
     cancel_url: cancelUrl,

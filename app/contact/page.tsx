@@ -41,7 +41,7 @@ export default function ContactPage() {
     {
       icon: Clock,
       title: "Free trial",
-      description: `Start a ${BRAND.trialDays}-day trial — no card required.`,
+      description: `Start a ${BRAND.trialDays}-day trial — card required at checkout.`,
       value: registerUrl,
       href: "/register",
     },

@@ -12,6 +12,7 @@ import {
 import { canRoleAccessModule } from "@/lib/roles";
 import { normalizeInviteEmail } from "@/lib/invites";
 import { isSuperAdminUser } from "@/lib/super-admin";
+import { needsSubscriptionSetup } from "@/lib/stripe";
 
 export async function getSession() {
   return auth();
@@ -100,6 +101,14 @@ export async function getOrganizationContext() {
   }
 
   if (organization.frozenAt) redirect("/account-suspended");
+
+  if (needsSubscriptionSetup(organization)) {
+    const pathname = headers().get("x-pathname") ?? "";
+    if (!pathname.startsWith("/onboarding")) {
+      redirect("/onboarding");
+    }
+  }
+
   return { session, organization };
 }
 

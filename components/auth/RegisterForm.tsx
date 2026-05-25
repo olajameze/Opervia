@@ -106,7 +106,7 @@ export function RegisterForm({
         <CardDescription>
           {inviteToken
             ? `Create your account to accept the team invite.`
-            : `${BRAND.trialDays} days free · No credit card required`}
+            : `${BRAND.trialDays}-day free trial · Card required at checkout`}
         </CardDescription>
       </CardHeader>
       <CardContent>

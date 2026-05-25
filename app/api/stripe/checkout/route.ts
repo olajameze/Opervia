@@ -2,14 +2,23 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { createCheckoutSession } from "@/lib/stripe";
-import { getStripePriceId, getMissingStripePriceEnv, type SubscriptionPlan } from "@/lib/plans";
+import {
+  getStripePriceId,
+  getMissingStripePriceEnv,
+  isOnActiveTrial,
+  type SubscriptionPlan,
+} from "@/lib/plans";
 import { getAppUrl } from "@/lib/app-url";
 import { denyUnlessApiPermission } from "@/lib/api-auth";
+import { BRAND } from "@/lib/branding";
 import { z } from "zod";
 
 const schema = z.object({
   plan: z.enum(["STARTER", "PRO", "ENTERPRISE"]).default("PRO"),
+  source: z.enum(["billing", "onboarding"]).default("billing"),
 });
+
+const ACTIVE_SUBSCRIPTION_STATUSES = new Set(["TRIALING", "ACTIVE", "PAST_DUE"]);
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -22,6 +31,7 @@ export async function POST(req: Request) {
 
   const body = schema.parse(await req.json().catch(() => ({})));
   const plan = body.plan as SubscriptionPlan;
+  const source = body.source;
   const priceId = getStripePriceId(plan);
 
   const missingEnv = getMissingStripePriceEnv(plan);
@@ -42,7 +52,39 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Organization not found" }, { status: 404 });
   }
 
+  if (
+    org.stripeSubscriptionId &&
+    ACTIVE_SUBSCRIPTION_STATUSES.has(org.subscriptionStatus)
+  ) {
+    return NextResponse.json(
+      {
+        error: "You already have an active subscription. Use Manage Billing to change your plan.",
+      },
+      { status: 400 }
+    );
+  }
+
   const appUrl = getAppUrl();
+  let trialPeriodDays: number | undefined;
+  let trialEnd: number | undefined;
+
+  if (!org.stripeSubscriptionId) {
+    if (source === "onboarding") {
+      if (isOnActiveTrial(org) && org.trialEndsAt && org.trialEndsAt > new Date()) {
+        trialEnd = Math.floor(org.trialEndsAt.getTime() / 1000);
+      } else {
+        trialPeriodDays = BRAND.trialDays;
+      }
+    } else if (
+      isOnActiveTrial(org) &&
+      org.trialEndsAt &&
+      org.trialEndsAt > new Date()
+    ) {
+      trialEnd = Math.floor(org.trialEndsAt.getTime() / 1000);
+    }
+  }
+
+  const isOnboarding = source === "onboarding";
 
   try {
     const checkoutSession = await createCheckoutSession({
@@ -50,8 +92,14 @@ export async function POST(req: Request) {
       priceId,
       organizationId: org.id,
       plan,
-      successUrl: `${appUrl}/billing?success=true`,
-      cancelUrl: `${appUrl}/billing?canceled=true`,
+      trialPeriodDays,
+      trialEnd,
+      successUrl: isOnboarding
+        ? `${appUrl}/dashboard?subscribed=true`
+        : `${appUrl}/billing?success=true`,
+      cancelUrl: isOnboarding
+        ? `${appUrl}/onboarding?canceled=true`
+        : `${appUrl}/billing?canceled=true`,
     });
 
     if (!checkoutSession.url) {

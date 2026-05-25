@@ -212,9 +212,14 @@ export function isTrialExpired(
 export const INACTIVE_SUBSCRIPTION_PATHS = ["/billing", "/settings"] as const;
 
 export function getEffectivePlan(
-  org: Pick<Organization, "subscriptionStatus" | "subscriptionPlan" | "trialEndsAt">
+  org: Pick<Organization, "subscriptionStatus" | "subscriptionPlan" | "trialEndsAt"> & {
+    stripeSubscriptionId?: string | null;
+  }
 ): SubscriptionPlan {
   if (isOnActiveTrial(org)) {
+    if (org.stripeSubscriptionId && org.subscriptionPlan) {
+      return org.subscriptionPlan;
+    }
     return "STARTER";
   }
   if (org.subscriptionStatus === "ACTIVE" && org.subscriptionPlan) {
@@ -224,20 +229,27 @@ export function getEffectivePlan(
 }
 
 export function canAccessModule(
-  org: Pick<Organization, "subscriptionStatus" | "subscriptionPlan" | "trialEndsAt">,
+  org: Pick<Organization, "subscriptionStatus" | "subscriptionPlan" | "trialEndsAt"> & {
+    stripeSubscriptionId?: string | null;
+  },
   module: AppModule
 ): boolean {
   if (!hasActiveSubscription(org)) {
     return module === "billing";
   }
   if (isOnActiveTrial(org)) {
+    if (org.stripeSubscriptionId && org.subscriptionPlan) {
+      return PLANS[org.subscriptionPlan].modules.includes(module);
+    }
     return TRIAL_MODULES.includes(module);
   }
   const plan = getEffectivePlan(org);
   return PLANS[plan].modules.includes(module);
 }
 
-type PlanOrg = Pick<Organization, "subscriptionStatus" | "subscriptionPlan" | "trialEndsAt">;
+type PlanOrg = Pick<Organization, "subscriptionStatus" | "subscriptionPlan" | "trialEndsAt"> & {
+  stripeSubscriptionId?: string | null;
+};
 
 export function getStaffLimit(org: PlanOrg): number {
   return PLANS[getEffectivePlan(org)].maxStaff;

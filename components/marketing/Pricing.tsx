@@ -24,7 +24,7 @@ export function Pricing() {
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Simple, transparent pricing</h2>
           <p className="text-muted-foreground text-lg">
-            Start with a free {BRAND.trialDays}-day trial on Pro features. No credit card required.
+            Start with a {BRAND.trialDays}-day free trial. Card required at signup — no charge until the trial ends.
           </p>
         </div>
         <div className="grid gap-8 md:grid-cols-3 max-w-6xl mx-auto">

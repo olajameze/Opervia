@@ -1,17 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { useSession } from "next-auth/react";
 import type { SubscriptionPlan } from "@prisma/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PlanPicker } from "@/components/auth/PlanPicker";
 import { BRAND } from "@/lib/branding";
 
-export function OnboardingForm() {
-  const { update } = useSession();
+export function CompleteSubscriptionForm({
+  organizationName,
+  canceled,
+}: {
+  organizationName: string;
+  canceled?: boolean;
+}) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [plan, setPlan] = useState<SubscriptionPlan>("PRO");
@@ -21,53 +23,45 @@ export function OnboardingForm() {
     setLoading(true);
     setError("");
 
-    const form = new FormData(e.currentTarget);
-    const res = await fetch("/api/onboarding", {
+    const res = await fetch("/api/stripe/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        organizationName: form.get("organizationName"),
-        plan,
-      }),
+      body: JSON.stringify({ plan, source: "onboarding" }),
     });
 
     const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-      setError(typeof data.error === "string" ? data.error : "Setup failed");
+      setError(typeof data.error === "string" ? data.error : "Checkout failed");
       setLoading(false);
       return;
     }
 
-    await update();
-
-    if (data.checkoutUrl) {
-      window.location.assign(data.checkoutUrl);
+    if (data.url) {
+      window.location.assign(data.url);
       return;
     }
 
-    window.location.assign("/dashboard");
+    setError("Stripe did not return a checkout URL");
+    setLoading(false);
   }
 
   return (
     <Card className="w-full max-w-lg">
       <CardHeader>
-        <CardTitle>Set up your {BRAND.name} workspace</CardTitle>
+        <CardTitle>Complete your subscription</CardTitle>
         <CardDescription>
-          Create your organization and start your {BRAND.trialDays}-day free trial.
+          {organizationName} is ready. Add a payment method to start your {BRAND.trialDays}-day
+          free trial — you won&apos;t be charged until the trial ends.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="organizationName">Organization name</Label>
-            <Input
-              id="organizationName"
-              name="organizationName"
-              required
-              placeholder="Acme Equipment Rentals"
-            />
-          </div>
+          {canceled && (
+            <p className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-900 dark:text-amber-100">
+              Checkout was canceled. Choose a plan and try again to access {BRAND.name}.
+            </p>
+          )}
           <PlanPicker value={plan} onChange={setPlan} />
           {error && <p className="text-sm text-destructive">{error}</p>}
           <div className="flex justify-center pt-1">

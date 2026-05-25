@@ -18,7 +18,7 @@ const faqs = [
   },
   {
     question: "How does the free trial work?",
-    answer: `You get ${BRAND.trialDays} days of full access to all Pro plan features. No credit card required. At the end of the trial, choose a plan or your account will be paused.`,
+    answer: `You get ${BRAND.trialDays} days of access to your chosen plan. Add a payment method at signup — you won't be charged until the trial ends. After ${BRAND.trialDays} days, your subscription renews automatically unless you cancel.`,
   },
   {
     question: "Can I manage both staff and freelancers?",

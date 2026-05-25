@@ -33,7 +33,7 @@ export function Hero() {
             </LinkButton>
           </div>
           <p className="text-sm text-muted-foreground">
-            No credit card required · {BRAND.trialDays}-day free trial · Cancel anytime
+            Card required · {BRAND.trialDays}-day free trial · Cancel anytime
           </p>
         </div>
 

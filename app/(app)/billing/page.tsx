@@ -168,7 +168,7 @@ export default async function BillingPage() {
 
             <CardTitle>Available plans</CardTitle>
 
-            <CardDescription>All plans include a {BRAND.trialDays}-day free trial</CardDescription>
+            <CardDescription>All plans include a {BRAND.trialDays}-day free trial (card required)</CardDescription>
 
           </CardHeader>
 

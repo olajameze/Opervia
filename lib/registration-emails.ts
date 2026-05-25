@@ -80,7 +80,7 @@ export async function sendWelcomeEmail(input: { email: string; name: string }) {
       `<p>Hi ${input.name},</p>
 <p>Your email is confirmed — welcome aboard. ${BRAND.name} helps you run rentals, workforce, scheduling, logistics, and billing from one place.</p>
 <p><a href="${dashboardUrl}" style="display:inline-block;background:#0d9488;color:#fff;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:600;">Go to dashboard</a></p>
-<p style="color:#64748b;font-size:13px;">Your ${BRAND.trialDays}-day free trial starts now. No credit card required.</p>`
+<p style="color:#64748b;font-size:13px;">Your ${BRAND.trialDays}-day free trial starts after you complete secure checkout. A card is required but you won't be charged until the trial ends.</p>`
     ),
     idempotencyKey: `welcome/${input.email}`,
   });

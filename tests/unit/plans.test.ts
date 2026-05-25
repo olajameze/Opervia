@@ -48,6 +48,13 @@ const expiredOrg = {
   trialEndsAt: new Date(Date.now() - 86400000),
 };
 
+const stripeTrialingProOrg = {
+  subscriptionStatus: "TRIALING" as const,
+  subscriptionPlan: "PRO" as const,
+  trialEndsAt: new Date(Date.now() + 86400000),
+  stripeSubscriptionId: "sub_test_123",
+};
+
 describe("plans", () => {
   it("defines Starter, Pro, and Enterprise pricing", () => {
     expect(PLANS.STARTER.priceLabel).toBe("£99");
@@ -55,7 +62,7 @@ describe("plans", () => {
     expect(PLANS.ENTERPRISE.priceLabel).toBe("£399");
   });
 
-  it("limits trial to Starter plus Pro previews", () => {
+  it("limits trial to Starter plus Pro previews for app-only trials", () => {
     expect(getEffectivePlan(trialingOrg)).toBe("STARTER");
     expect(canAccessModule(trialingOrg, "rentals")).toBe(true);
     expect(canAccessModule(trialingOrg, "logistics")).toBe(true);
@@ -63,6 +70,13 @@ describe("plans", () => {
     expect(canAccessModule(trialingOrg, "automations")).toBe(false);
     expect(getStaffLimit(trialingOrg)).toBe(5);
     expect(getFreelancerLimit(trialingOrg)).toBe(10);
+  });
+
+  it("uses the selected plan during Stripe-managed trial", () => {
+    expect(getEffectivePlan(stripeTrialingProOrg)).toBe("PRO");
+    expect(canAccessModule(stripeTrialingProOrg, "automations")).toBe(true);
+    expect(getStaffLimit(stripeTrialingProOrg)).toBe(10);
+    expect(getFreelancerLimit(stripeTrialingProOrg)).toBe(20);
   });
 
   it("restricts Starter plan modules", () => {
