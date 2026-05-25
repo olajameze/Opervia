@@ -72,11 +72,11 @@ export const PLANS = {
     price: 399,
     priceLabel: "£399",
     period: "/month",
-    maxStaff: 50,
+    maxStaff: 100,
     maxFreelancers: 100,
     description: "For medium and large businesses running complex operations at scale.",
     features: [
-      "Up to 50 staff & 100 freelancers",
+      "Up to 100 staff & 100 freelancers",
       "Everything in Pro",
       "Bulk CSV data export",
       "Priority onboarding & support",

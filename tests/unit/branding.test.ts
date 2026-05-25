@@ -14,7 +14,7 @@ describe("Opervia branding", () => {
     expect(HERO.headline).toBe(BRAND.secondaryTagline);
   });
 
-  it("has 5-day trial", () => {
-    expect(BRAND.trialDays).toBe(5);
+  it("has 30-day trial", () => {
+    expect(BRAND.trialDays).toBe(30);
   });
 });

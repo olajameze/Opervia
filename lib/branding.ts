@@ -22,7 +22,7 @@ export const BRAND = {
     "Mobile-first experience",
     "Professional enterprise UX",
   ],
-  trialDays: 5,
+  trialDays: 30,
   supportEmail: process.env.OPERVIA_SUPPORT_EMAIL?.trim() || "opervia@gmail.com",
   salesEmail: process.env.OPERVIA_SALES_EMAIL?.trim() || process.env.OPERVIA_SUPPORT_EMAIL?.trim() || "opervia@gmail.com",
 } as const;
@@ -31,6 +31,6 @@ export const HERO = {
   headline: BRAND.secondaryTagline,
   subheadline:
     "Opervia helps businesses manage equipment, staff, freelancers, scheduling, logistics and operations from one intelligent platform built for growing teams across Europe.",
-  primaryCta: "Start Free 5-Day Trial",
+  primaryCta: "Start Free 30-Day Trial",
   secondaryCta: "See Features",
 } as const;

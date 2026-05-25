@@ -13,13 +13,14 @@ import {
   faqSchema,
   jsonLdScript,
 } from "@/lib/schema";
+import { BRAND } from "@/lib/branding";
 import { CheckCircle2 } from "lucide-react";
 
 const socialProof = [
   "Built for European operations teams",
   "GDPR compliant",
   "Enterprise-grade infrastructure",
-  "5-day free trial",
+  `${BRAND.trialDays}-day free trial`,
 ];
 
 export default function HomePage() {

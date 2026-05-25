@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { BRAND } from "@/lib/branding";
 import { Role } from "@prisma/client";
 
 export async function createUniqueOrganizationSlug(name: string): Promise<string> {
@@ -24,7 +25,7 @@ export async function createOrganization(
 ) {
   const resolvedSlug = slug ?? (await createUniqueOrganizationSlug(name));
   const trialEndsAt = new Date();
-  trialEndsAt.setDate(trialEndsAt.getDate() + 5);
+  trialEndsAt.setDate(trialEndsAt.getDate() + BRAND.trialDays);
 
   const organization = await prisma.organization.create({
     data: {

@@ -1,5 +1,6 @@
 import { PrismaClient, Role, WorkflowTrigger } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { BRAND } from "../lib/branding";
 
 const prisma = new PrismaClient();
 
@@ -30,7 +31,7 @@ async function main() {
   await seedSuperAdmin(passwordHash);
 
   const trialEndsAt = new Date();
-  trialEndsAt.setDate(trialEndsAt.getDate() + 5);
+  trialEndsAt.setDate(trialEndsAt.getDate() + BRAND.trialDays);
 
   const org = await prisma.organization.upsert({
     where: { slug: "demo-rentals" },

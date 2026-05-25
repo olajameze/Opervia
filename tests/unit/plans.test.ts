@@ -81,7 +81,7 @@ describe("plans", () => {
     expect(getFreelancerLimit(starterOrg)).toBe(10);
     expect(getStaffLimit(proOrg)).toBe(10);
     expect(getFreelancerLimit(proOrg)).toBe(20);
-    expect(getStaffLimit(enterpriseOrg)).toBe(50);
+    expect(getStaffLimit(enterpriseOrg)).toBe(100);
     expect(getFreelancerLimit(enterpriseOrg)).toBe(100);
     expect(formatStaffLimit(proOrg)).toBe("10");
     expect(formatFreelancerLimit(proOrg)).toBe("20");
