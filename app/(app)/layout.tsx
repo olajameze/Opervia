@@ -1,6 +1,7 @@
 import { getOrganizationContext, enforceSubscriptionAccess } from "@/lib/auth-helpers";
 import { enforceMaintenanceMode } from "@/lib/maintenance-enforcement";
-import { AppSidebar, MobileNav } from "@/components/app/AppSidebar";
+import { AppSidebar } from "@/components/app/AppSidebar";
+import { MobileNav } from "@/components/app/MobileNav";
 import { AppHeader } from "@/components/app/AppHeader";
 import { AppExperienceBanners } from "@/components/app/AppExperienceBanners";
 import { AppOfflineGate } from "@/components/pwa/AppOfflineGate";
