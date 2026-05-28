@@ -15,7 +15,7 @@ export async function AppHeader() {
   const onTrial = isOnActiveTrial(organization);
 
   return (
-    <header className="flex h-16 items-center justify-between border-b px-6 bg-background">
+    <header className="flex h-16 shrink-0 items-center justify-between border-b bg-background px-6">
       <div>
         <p className="text-sm text-muted-foreground">{BRAND.name}</p>
         <p className="font-semibold">{session?.user?.organizationName ?? "Workspace"}</p>

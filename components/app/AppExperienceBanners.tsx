@@ -93,7 +93,7 @@ export function AppExperienceBanners({
     trialDaysRemaining !== null ? formatTrialEndingLabel(trialDaysRemaining) : null;
 
   return (
-    <div className="border-b bg-muted/30 px-4 md:px-6 py-4 space-y-3">
+    <div className="shrink-0 space-y-3 border-b bg-muted/30 px-4 py-4 md:px-6">
       {subscriptionInactive && (
         <div
           className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 dark:border-red-800 dark:bg-red-950/40"

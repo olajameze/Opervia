@@ -23,9 +23,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const subscriptionInactive = !hasActiveSubscription(organization);
 
   return (
-    <div className="flex min-h-screen">
+    <div data-app-shell className="flex h-dvh max-h-dvh overflow-hidden">
       <AppSidebar organization={organization} role={session.user.role} />
-      <div className="flex-1 flex flex-col min-h-screen pb-16 md:pb-0">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <AppHeader />
         <AppExperienceBanners
           userId={session.user.id}
@@ -34,7 +34,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           showTrialEnding={onTrial && isTrialEndingSoon(organization)}
           subscriptionInactive={subscriptionInactive}
         />
-        <main className="flex-1 p-6 overflow-auto">
+        <main className="app-main-scroll min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-6 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-6">
           <AppOfflineGate>{children}</AppOfflineGate>
         </main>
       </div>

@@ -113,7 +113,7 @@ export function AppSidebar({
   const onTrial = isOnActiveTrial(organization);
 
   return (
-    <aside className="hidden md:flex w-64 flex-col border-r border-sidebar-border bg-sidebar min-h-screen text-sidebar-foreground">
+    <aside className="hidden md:flex w-64 min-h-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
       <div className="flex h-16 items-center gap-2.5 border-b border-sidebar-border px-6">
         <OperviaLogo size={32} variant="sidebar" />
         <div>
@@ -167,7 +167,7 @@ export function MobileNav({
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t bg-background flex"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex border-t bg-background pb-[env(safe-area-inset-bottom,0px)]"
       aria-label="Mobile navigation"
     >
       {mobileItems.map((item) => {

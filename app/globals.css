@@ -107,6 +107,21 @@
   body {
     @apply bg-background text-foreground antialiased;
   }
+
+  html:has([data-app-shell]),
+  body:has([data-app-shell]) {
+    overflow: hidden;
+    height: 100vh;
+    min-height: 100vh;
+  }
+
+  @supports (height: 100dvh) {
+    html:has([data-app-shell]),
+    body:has([data-app-shell]) {
+      height: 100dvh;
+      min-height: 100dvh;
+    }
+  }
 }
 
 @layer components {
@@ -147,6 +162,11 @@
 }
 
 @layer utilities {
+  .app-main-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+
   .text-balance {
     text-wrap: balance;
   }
