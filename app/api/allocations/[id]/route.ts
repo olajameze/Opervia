@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { denyUnlessApiPermission, requireApiOrganization } from "@/lib/api-auth";
-
+import { syncEquipmentStatus } from "@/lib/services/equipment-inventory";
 export async function PATCH(
   _req: Request,
   { params }: { params: { id: string } }
@@ -37,12 +37,7 @@ export async function PATCH(
     },
   });
 
-  if (!activeAllocation) {
-    await prisma.equipment.update({
-      where: { id: allocation.equipmentId },
-      data: { status: "AVAILABLE" },
-    });
-  }
+  await syncEquipmentStatus(allocation.equipmentId);
 
   return NextResponse.json(updated);
 }

@@ -4,6 +4,7 @@ export async function getDashboardStats(organizationId: string) {
   const [
     activeJobs,
     staffCount,
+    freelancerCount,
     equipmentRented,
     totalRevenue,
     pendingInvoices,
@@ -16,6 +17,7 @@ export async function getDashboardStats(organizationId: string) {
       },
     }),
     prisma.staffProfile.count({ where: { organizationId } }),
+    prisma.freelancerProfile.count({ where: { organizationId } }),
     prisma.equipment.count({
       where: { organizationId, status: "RENTED" },
     }),
@@ -38,6 +40,7 @@ export async function getDashboardStats(organizationId: string) {
   return {
     activeJobs,
     staffCount,
+    freelancerCount,
     equipmentRented,
     totalRevenue: totalRevenue._sum.amount ?? 0,
     pendingInvoices,

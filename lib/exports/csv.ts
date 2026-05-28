@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { toCsv } from "@/lib/exports/csv-utils";
 
 export type ExportResource = "jobs" | "invoices" | "equipment" | "staff" | "freelancers";
 
@@ -9,23 +10,6 @@ export const EXPORT_RESOURCES: ExportResource[] = [
   "staff",
   "freelancers",
 ];
-
-function escapeCsv(value: unknown): string {
-  if (value == null) return "";
-  const str = String(value);
-  if (/[",\n\r]/.test(str)) {
-    return `"${str.replace(/"/g, '""')}"`;
-  }
-  return str;
-}
-
-function toCsv(headers: string[], rows: Record<string, unknown>[]): string {
-  const lines = [
-    headers.join(","),
-    ...rows.map((row) => headers.map((header) => escapeCsv(row[header])).join(",")),
-  ];
-  return lines.join("\r\n");
-}
 
 export async function buildExportCsv(
   resource: ExportResource,
@@ -87,12 +71,13 @@ export async function buildExportCsv(
         orderBy: { name: "asc" },
       });
       return toCsv(
-        ["id", "name", "sku", "category", "status", "dailyRate", "createdAt"],
+        ["id", "name", "sku", "category", "totalQuantity", "status", "dailyRate", "createdAt"],
         rows.map((row) => ({
           id: row.id,
           name: row.name,
           sku: row.sku ?? "",
           category: row.category ?? "",
+          totalQuantity: row.totalQuantity,
           status: row.status,
           dailyRate: row.dailyRate ?? "",
           createdAt: row.createdAt.toISOString(),
@@ -105,14 +90,14 @@ export async function buildExportCsv(
         orderBy: { name: "asc" },
       });
       return toCsv(
-        ["id", "name", "email", "phone", "skills", "hourlyRate", "createdAt"],
+        ["id", "name", "email", "phone", "location", "skills", "createdAt"],
         rows.map((row) => ({
           id: row.id,
           name: row.name,
           email: row.email ?? "",
           phone: row.phone ?? "",
+          location: row.location ?? "",
           skills: row.skills.join("; "),
-          hourlyRate: row.hourlyRate ?? "",
           createdAt: row.createdAt.toISOString(),
         }))
       );
@@ -123,14 +108,15 @@ export async function buildExportCsv(
         orderBy: { name: "asc" },
       });
       return toCsv(
-        ["id", "name", "email", "phone", "skills", "hourlyRate", "createdAt"],
+        ["id", "name", "email", "phone", "location", "skills", "dayRate", "createdAt"],
         rows.map((row) => ({
           id: row.id,
           name: row.name,
           email: row.email ?? "",
           phone: row.phone ?? "",
+          location: row.location ?? "",
           skills: row.skills.join("; "),
-          hourlyRate: row.hourlyRate ?? "",
+          dayRate: row.dayRate ?? "",
           createdAt: row.createdAt.toISOString(),
         }))
       );

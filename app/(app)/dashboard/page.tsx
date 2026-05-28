@@ -11,6 +11,7 @@ import { evaluateWorkflowRules } from "@/lib/workflows";
 import {
   Briefcase,
   Users,
+  UserCheck,
   Package,
   Euro,
   FileText,
@@ -56,8 +57,7 @@ export default async function DashboardPage() {
                 ` · ${trialDaysRemaining} day${trialDaysRemaining === 1 ? "" : "s"} left`}
             </p>
             <p className="text-sm text-amber-800 dark:text-amber-200/90 mt-0.5">
-              You have full Starter access plus previews of Logistics and Analytics. Automations
-              require Pro; bulk CSV export requires Enterprise.
+              You have full Starter access plus previews of Logistics and Analytics.
             </p>
           </div>
           <LinkButton href="/billing" size="sm" variant="outline" className="shrink-0 border-amber-300">
@@ -66,9 +66,10 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7">
         <StatCard title="Active Jobs" value={stats.activeJobs} icon={Briefcase} />
         <StatCard title="Staff Members" value={stats.staffCount} icon={Users} />
+        <StatCard title="Freelancers" value={stats.freelancerCount} icon={UserCheck} />
         <StatCard title="Equipment Out" value={stats.equipmentRented} icon={Package} />
         <StatCard
           title="Revenue"

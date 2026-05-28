@@ -2,9 +2,14 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { denyUnlessApiPermission, requireApiOrganization } from "@/lib/api-auth";
+import { syncEquipmentStatus } from "@/lib/services/equipment-inventory";
 
 const schema = z.object({
-  status: z.enum(["AVAILABLE", "RENTED", "MAINTENANCE", "RETIRED"]),
+  addQuantity: z.coerce.number().int().positive().optional(),
+  name: z.string().min(1).optional(),
+  sku: z.string().optional().nullable(),
+  category: z.string().optional().nullable(),
+  dailyRate: z.coerce.number().optional().nullable(),
 });
 
 export async function PATCH(
@@ -28,9 +33,20 @@ export async function PATCH(
 
     const equipment = await prisma.equipment.update({
       where: { id: params.id },
-      data: { status: body.status },
+      data: {
+        ...(body.addQuantity !== undefined && {
+          totalQuantity: { increment: body.addQuantity },
+        }),
+        ...(body.name !== undefined && { name: body.name }),
+        ...(body.sku !== undefined && { sku: body.sku }),
+        ...(body.category !== undefined && { category: body.category }),
+        ...(body.dailyRate !== undefined && { dailyRate: body.dailyRate }),
+      },
     });
-    return NextResponse.json(equipment);
+
+    await syncEquipmentStatus(equipment.id);
+    const updated = await prisma.equipment.findUniqueOrThrow({ where: { id: equipment.id } });
+    return NextResponse.json(updated);
   } catch {
     return NextResponse.json({ error: "Invalid equipment update" }, { status: 400 });
   }

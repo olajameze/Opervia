@@ -9,22 +9,15 @@ import { StatCard } from "@/components/app/StatCard";
 import { Badge } from "@/components/ui/badge";
 
 import {
-
   JobForm,
-
   ShiftForm,
-
   ClientForm,
-
   ProjectForm,
-
   JobAssignForm,
-
   DeleteButton,
-
   StatusSelect,
-
 } from "@/components/app/ModuleForms";
+import { SchedulingJobActions } from "@/components/app/SchedulingJobActions";
 
 import { Calendar, Clock, CheckCircle } from "lucide-react";
 
@@ -331,9 +324,17 @@ export default async function SchedulingPage() {
               header: "Actions",
 
               render: (row) => (
-
-                <DeleteButton endpoint={`/api/jobs/${row.id as string}`} />
-
+                <div className="space-y-2">
+                  <SchedulingJobActions
+                    jobId={row.id as string}
+                    freelancers={freelancers.map((f) => ({
+                      id: f.id,
+                      name: f.name,
+                      email: f.email,
+                    }))}
+                  />
+                  <DeleteButton endpoint={`/api/jobs/${row.id as string}`} />
+                </div>
               ),
 
             },

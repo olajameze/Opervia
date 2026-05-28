@@ -121,6 +121,9 @@ model Organization {
   workflowRules        WorkflowRule[]
   auditLogs            AuditLog[]
   teamInvites          TeamInvite[]
+  skillCatalog         SkillCatalog[]
+  workforceDocuments   WorkforceDocument[]
+  availabilityRequests AvailabilityRequest[]
 }
 
 model Membership {
@@ -212,6 +215,7 @@ model Job {
   assignments    Assignment[]
   logisticsEvents LogisticsEvent[]
   equipmentAllocations EquipmentAllocation[]
+  availabilityRequests AvailabilityRequest[]
 }
 
 enum EquipmentStatus {
@@ -227,18 +231,22 @@ model Equipment {
   sku            String?
   category       String?
   status         EquipmentStatus @default(AVAILABLE)
+  totalQuantity  Int             @default(1)
   dailyRate      Float?
   organizationId String
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   allocations    EquipmentAllocation[]
+
+  @@index([organizationId, name])
 }
 
 model EquipmentAllocation {
   id             String    @id @default(cuid())
   equipmentId    String
   jobId          String?
+  quantity       Int       @default(1)
   startDate      DateTime
   endDate        DateTime?
   organizationId String
@@ -253,15 +261,16 @@ model StaffProfile {
   name           String
   email          String?
   phone          String?
+  location       String?
   skills         String[]
   certifications String[]
-  hourlyRate     Float?
   organizationId String
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   shifts         Shift[]
   assignments    Assignment[]
+  documents      WorkforceDocument[]
 }
 
 model FreelancerProfile {
@@ -269,13 +278,16 @@ model FreelancerProfile {
   name           String
   email          String?
   phone          String?
+  location       String?
   skills         String[]
-  hourlyRate     Float?
+  dayRate        Float?
   organizationId String
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   assignments    Assignment[]
+  documents      WorkforceDocument[]
+  availabilityResponses AvailabilityResponse[]
 }
 
 model Shift {
@@ -423,4 +435,69 @@ model SystemSettings {
   maintenanceMode    Boolean  @default(false)
   maintenanceMessage String?
   updatedAt          DateTime @updatedAt
+}
+
+model SkillCatalog {
+  id             String       @id @default(cuid())
+  name           String
+  organizationId String
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+}
+
+model WorkforceDocument {
+  id                  String             @id @default(cuid())
+  label               String
+  fileName            String
+  mimeType            String
+  blobUrl             String
+  sizeBytes           Int
+  organizationId      String
+  staffProfileId      String?
+  freelancerProfileId String?
+  uploadedAt          DateTime           @default(now())
+  organization        Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  staffProfile        StaffProfile?      @relation(fields: [staffProfileId], references: [id], onDelete: Cascade)
+  freelancerProfile   FreelancerProfile? @relation(fields: [freelancerProfileId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([staffProfileId])
+  @@index([freelancerProfileId])
+}
+
+enum AvailabilityResponseStatus {
+  AVAILABLE
+  UNAVAILABLE
+}
+
+model AvailabilityRequest {
+  id             String   @id @default(cuid())
+  jobId          String
+  organizationId String
+  token          String   @unique
+  expiresAt      DateTime
+  sentAt         DateTime @default(now())
+  requiredSkills String[]
+  message        String?
+  job            Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  responses      AvailabilityResponse[]
+
+  @@index([organizationId])
+  @@index([jobId])
+}
+
+model AvailabilityResponse {
+  id                  String                     @id @default(cuid())
+  requestId           String
+  freelancerProfileId String
+  status              AvailabilityResponseStatus
+  respondedAt         DateTime                   @default(now())
+  request             AvailabilityRequest        @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  freelancerProfile   FreelancerProfile          @relation(fields: [freelancerProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([requestId, freelancerProfileId])
 }

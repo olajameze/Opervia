@@ -46,6 +46,9 @@ const publicRoutes = [
   "/account-suspended",
   "/invite",
   "/offline",
+  "/availability",
+  "/availability",
+  "/api/availability",
   "/api/auth",
   "/api/contact",
   "/api/register",
@@ -112,6 +115,7 @@ export default auth(async (req) => {
     pathname.startsWith("/scheduling") ||
     pathname.startsWith("/logistics") ||
     pathname.startsWith("/billing") ||
+    pathname.startsWith("/invoicing") ||
     pathname.startsWith("/analytics") ||
     pathname.startsWith("/automations") ||
     pathname.startsWith("/settings");

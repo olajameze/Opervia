@@ -14,7 +14,7 @@ import {
   JobCompletionChart,
 } from "@/components/analytics/AnalyticsCharts";
 import { formatCurrency } from "@/lib/utils";
-import { BarChart3, TrendingUp, Users, Package } from "lucide-react";
+import { BarChart3, TrendingUp, Users, UserCheck, Package } from "lucide-react";
 
 export default async function AnalyticsPage() {
   const { organization } = await requireModuleAccess("analytics");
@@ -44,10 +44,11 @@ export default async function AnalyticsPage() {
         <p className="text-muted-foreground">Operational KPIs and performance insights.</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard title="Total Revenue" value={formatCurrency(stats.totalRevenue)} icon={TrendingUp} />
         <StatCard title="Active Jobs" value={stats.activeJobs} icon={BarChart3} />
         <StatCard title="Staff Count" value={stats.staffCount} icon={Users} />
+        <StatCard title="Freelancers" value={stats.freelancerCount} icon={UserCheck} />
         <StatCard
           title="Equipment Utilization"
           value={`${stats.equipmentRented} rented`}

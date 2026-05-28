@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { offlineFetch } from "@/lib/pwa/offline-fetch";
+import { SkillPicker } from "@/components/app/SkillPicker";
+import { EquipmentPicker, type EquipmentOption } from "@/components/app/EquipmentPicker";
 
 export function DeleteButton({
   endpoint,
@@ -161,18 +163,10 @@ export function EquipmentForm() {
         }}
       >
         <Field label="Name" name="name" required placeholder="Scissor Lift 8m" />
+        <Field label="Quantity" name="totalQuantity" type="number" placeholder="1" />
         <Field label="SKU" name="sku" placeholder="SL-008" />
         <Field label="Category" name="category" placeholder="Lifts" />
         <Field label="Daily rate (£)" name="dailyRate" type="number" placeholder="85" />
-        <Field
-          label="Status"
-          name="status"
-          options={[
-            { value: "AVAILABLE", label: "Available" },
-            { value: "RENTED", label: "Rented" },
-            { value: "MAINTENANCE", label: "Maintenance" },
-          ]}
-        />
         {error && <p className="text-sm text-destructive sm:col-span-2">{error}</p>}
         <Button type="submit" disabled={loading} className="sm:col-span-2 w-fit">
           {loading ? "Saving..." : "Add equipment"}
@@ -183,21 +177,58 @@ export function EquipmentForm() {
 }
 
 export function StaffForm() {
-  const { loading, error, submit } = useResourceForm("/api/staff");
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [skills, setSkills] = useState<string[]>([]);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [location, setLocation] = useState("");
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    const res = await offlineFetch("/api/staff", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, phone, location, skills }),
+    });
+    setLoading(false);
+    if (!res.ok && res.status !== 202) {
+      const data = await res.json();
+      setError(data.error ?? "Save failed");
+      return;
+    }
+    setName("");
+    setEmail("");
+    setPhone("");
+    setLocation("");
+    setSkills([]);
+    router.refresh();
+  }
 
   return (
     <FormCard title="Add staff member">
-      <form
-        className="grid gap-3 sm:grid-cols-2"
-        onSubmit={(e) => {
-          e.preventDefault();
-          submit(e.currentTarget);
-        }}
-      >
-        <Field label="Name" name="name" required />
-        <Field label="Email" name="email" type="email" />
-        <Field label="Skills" name="skills" placeholder="Equipment Operation, Safety" />
-        <Field label="Hourly rate (£)" name="hourlyRate" type="number" />
+      <form className="grid gap-3 sm:grid-cols-2" onSubmit={(e) => void handleSubmit(e)}>
+        <div className="space-y-1">
+          <label htmlFor="staff-name" className="text-sm font-medium">Name</label>
+          <input id="staff-name" value={name} onChange={(e) => setName(e.target.value)} required className="flex h-10 w-full rounded-md border px-3 text-sm" />
+        </div>
+        <div className="space-y-1">
+          <label htmlFor="staff-email" className="text-sm font-medium">Email</label>
+          <input id="staff-email" value={email} onChange={(e) => setEmail(e.target.value)} type="email" className="flex h-10 w-full rounded-md border px-3 text-sm" />
+        </div>
+        <div className="space-y-1">
+          <label htmlFor="staff-phone" className="text-sm font-medium">Phone</label>
+          <input id="staff-phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="flex h-10 w-full rounded-md border px-3 text-sm" />
+        </div>
+        <div className="space-y-1">
+          <label htmlFor="staff-location" className="text-sm font-medium">Location</label>
+          <input id="staff-location" value={location} onChange={(e) => setLocation(e.target.value)} className="flex h-10 w-full rounded-md border px-3 text-sm" />
+        </div>
+        <SkillPicker value={skills} onChange={setSkills} />
         {error && <p className="text-sm text-destructive sm:col-span-2">{error}</p>}
         <Button type="submit" disabled={loading} className="sm:col-span-2 w-fit">
           {loading ? "Saving..." : "Add staff member"}
@@ -208,21 +239,71 @@ export function StaffForm() {
 }
 
 export function FreelancerForm() {
-  const { loading, error, submit } = useResourceForm("/api/freelancers");
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [skills, setSkills] = useState<string[]>([]);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [location, setLocation] = useState("");
+  const [dayRate, setDayRate] = useState("");
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    const res = await offlineFetch("/api/freelancers", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name,
+        email,
+        phone,
+        location,
+        skills,
+        dayRate: dayRate ? Number(dayRate) : undefined,
+      }),
+    });
+    setLoading(false);
+    if (!res.ok && res.status !== 202) {
+      const data = await res.json();
+      setError(data.error ?? "Save failed");
+      return;
+    }
+    setName("");
+    setEmail("");
+    setPhone("");
+    setLocation("");
+    setDayRate("");
+    setSkills([]);
+    router.refresh();
+  }
 
   return (
     <FormCard title="Add freelancer">
-      <form
-        className="grid gap-3 sm:grid-cols-2"
-        onSubmit={(e) => {
-          e.preventDefault();
-          submit(e.currentTarget);
-        }}
-      >
-        <Field label="Name" name="name" required />
-        <Field label="Email" name="email" type="email" />
-        <Field label="Skills" name="skills" placeholder="Electrical, Plumbing" />
-        <Field label="Hourly rate (£)" name="hourlyRate" type="number" />
+      <form className="grid gap-3 sm:grid-cols-2" onSubmit={(e) => void handleSubmit(e)}>
+        <div className="space-y-1">
+          <label htmlFor="freelancer-name" className="text-sm font-medium">Name</label>
+          <input id="freelancer-name" value={name} onChange={(e) => setName(e.target.value)} required className="flex h-10 w-full rounded-md border px-3 text-sm" />
+        </div>
+        <div className="space-y-1">
+          <label htmlFor="freelancer-email" className="text-sm font-medium">Email</label>
+          <input id="freelancer-email" value={email} onChange={(e) => setEmail(e.target.value)} type="email" className="flex h-10 w-full rounded-md border px-3 text-sm" />
+        </div>
+        <div className="space-y-1">
+          <label htmlFor="freelancer-phone" className="text-sm font-medium">Phone</label>
+          <input id="freelancer-phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="flex h-10 w-full rounded-md border px-3 text-sm" />
+        </div>
+        <div className="space-y-1">
+          <label htmlFor="freelancer-location" className="text-sm font-medium">Location</label>
+          <input id="freelancer-location" value={location} onChange={(e) => setLocation(e.target.value)} className="flex h-10 w-full rounded-md border px-3 text-sm" />
+        </div>
+        <div className="space-y-1">
+          <label htmlFor="freelancer-dayRate" className="text-sm font-medium">Day rate (£/12hr day)</label>
+          <input id="freelancer-dayRate" value={dayRate} onChange={(e) => setDayRate(e.target.value)} type="number" className="flex h-10 w-full rounded-md border px-3 text-sm" />
+        </div>
+        <SkillPicker value={skills} onChange={setSkills} />
         {error && <p className="text-sm text-destructive sm:col-span-2">{error}</p>}
         <Button type="submit" disabled={loading} className="sm:col-span-2 w-fit">
           {loading ? "Saving..." : "Add freelancer"}
@@ -682,7 +763,7 @@ export function EquipmentAllocationForm({
   equipment,
   jobs,
 }: {
-  equipment: { id: string; name: string }[];
+  equipment: EquipmentOption[];
   jobs: { id: string; title: string }[];
 }) {
   const { loading, error, submit } = useResourceForm("/api/allocations");
@@ -696,12 +777,8 @@ export function EquipmentAllocationForm({
           submit(e.currentTarget);
         }}
       >
-        <Field
-          label="Equipment"
-          name="equipmentId"
-          required
-          options={equipment.map((e) => ({ value: e.id, label: e.name }))}
-        />
+        <EquipmentPicker equipment={equipment} />
+        <Field label="Quantity" name="quantity" type="number" placeholder="1" required />
         <Field
           label="Job"
           name="jobId"

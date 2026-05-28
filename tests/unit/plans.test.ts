@@ -68,15 +68,15 @@ describe("plans", () => {
     expect(canAccessModule(trialingOrg, "logistics")).toBe(true);
     expect(canAccessModule(trialingOrg, "analytics")).toBe(true);
     expect(canAccessModule(trialingOrg, "automations")).toBe(false);
-    expect(getStaffLimit(trialingOrg)).toBe(5);
-    expect(getFreelancerLimit(trialingOrg)).toBe(10);
+    expect(getStaffLimit(trialingOrg)).toBe(10);
+    expect(getFreelancerLimit(trialingOrg)).toBe(20);
   });
 
   it("uses the selected plan during Stripe-managed trial", () => {
     expect(getEffectivePlan(stripeTrialingProOrg)).toBe("PRO");
     expect(canAccessModule(stripeTrialingProOrg, "automations")).toBe(true);
-    expect(getStaffLimit(stripeTrialingProOrg)).toBe(10);
-    expect(getFreelancerLimit(stripeTrialingProOrg)).toBe(20);
+    expect(getStaffLimit(stripeTrialingProOrg)).toBe(30);
+    expect(getFreelancerLimit(stripeTrialingProOrg)).toBe(50);
   });
 
   it("restricts Starter plan modules", () => {
@@ -91,21 +91,21 @@ describe("plans", () => {
   });
 
   it("limits staff and freelancers by plan", () => {
-    expect(getStaffLimit(starterOrg)).toBe(5);
-    expect(getFreelancerLimit(starterOrg)).toBe(10);
-    expect(getStaffLimit(proOrg)).toBe(10);
-    expect(getFreelancerLimit(proOrg)).toBe(20);
+    expect(getStaffLimit(starterOrg)).toBe(10);
+    expect(getFreelancerLimit(starterOrg)).toBe(20);
+    expect(getStaffLimit(proOrg)).toBe(30);
+    expect(getFreelancerLimit(proOrg)).toBe(50);
     expect(getStaffLimit(enterpriseOrg)).toBe(100);
     expect(getFreelancerLimit(enterpriseOrg)).toBe(100);
-    expect(formatStaffLimit(proOrg)).toBe("10");
-    expect(formatFreelancerLimit(proOrg)).toBe("20");
+    expect(formatStaffLimit(proOrg)).toBe("30");
+    expect(formatFreelancerLimit(proOrg)).toBe("50");
   });
 
   it("blocks growth when plan limits are reached", () => {
-    expect(isStaffLimitReached(proOrg, 10)).toBe(true);
-    expect(isStaffLimitReached(proOrg, 9)).toBe(false);
-    expect(isFreelancerLimitReached(starterOrg, 10)).toBe(true);
-    expect(isFreelancerLimitReached(starterOrg, 9)).toBe(false);
+    expect(isStaffLimitReached(proOrg, 30)).toBe(true);
+    expect(isStaffLimitReached(proOrg, 29)).toBe(false);
+    expect(isFreelancerLimitReached(starterOrg, 20)).toBe(true);
+    expect(isFreelancerLimitReached(starterOrg, 19)).toBe(false);
   });
 
   it("gates bulk export to Enterprise only", () => {

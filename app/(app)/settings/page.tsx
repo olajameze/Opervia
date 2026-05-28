@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { OrganizationSettingsForm } from "@/components/app/ModuleForms";
 import { TeamInvitePanel } from "@/components/app/TeamInvitePanel";
 import { DataExportPanel } from "@/components/app/DataExportPanel";
+import { DataImportPanel } from "@/components/app/DataImportPanel";
+import { SkillsConfigPanel } from "@/components/app/SkillsConfigPanel";
 import { WorkspaceDataPanel } from "@/components/app/WorkspaceDataPanel";
 import { BRAND } from "@/lib/branding";
 import { canExportData, canExportWorkspaceData, getEffectivePlan } from "@/lib/entitlements";
@@ -30,6 +32,10 @@ export default async function SettingsPage() {
       <OrganizationSettingsForm name={organization.name} />
 
       {canInvite && <TeamInvitePanel />}
+
+      <SkillsConfigPanel />
+
+      <DataImportPanel />
 
       <DataExportPanel organization={organization} canExport={canExport} />
 

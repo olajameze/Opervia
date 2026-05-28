@@ -68,13 +68,13 @@ async function main() {
 
   const equipment = await Promise.all([
     prisma.equipment.create({
-      data: { name: "Scissor Lift 8m", sku: "SL-008", category: "Lifts", status: "AVAILABLE", dailyRate: 85, organizationId: org.id },
+      data: { name: "Scissor Lift 8m", sku: "SL-008", category: "Lifts", status: "AVAILABLE", totalQuantity: 5, dailyRate: 85, organizationId: org.id },
     }),
     prisma.equipment.create({
-      data: { name: "Mini Excavator 1.5T", sku: "EX-015", category: "Earthmoving", status: "RENTED", dailyRate: 120, organizationId: org.id },
+      data: { name: "Mini Excavator 1.5T", sku: "EX-015", category: "Earthmoving", status: "RENTED", totalQuantity: 3, dailyRate: 120, organizationId: org.id },
     }),
     prisma.equipment.create({
-      data: { name: "Generator 20kVA", sku: "GN-020", category: "Power", status: "AVAILABLE", dailyRate: 45, organizationId: org.id },
+      data: { name: "Generator 20kVA", sku: "GN-020", category: "Power", status: "AVAILABLE", totalQuantity: 10, dailyRate: 45, organizationId: org.id },
     }),
   ]);
 
@@ -85,7 +85,7 @@ async function main() {
         email: "james@demo-rentals.com",
         skills: ["Equipment Operation", "Safety"],
         certifications: ["CSCS", "IPAF"],
-        hourlyRate: 28,
+        location: "Dublin",
         organizationId: org.id,
       },
     }),
@@ -94,7 +94,7 @@ async function main() {
         name: "Sarah Müller",
         email: "sarah@demo-rentals.com",
         skills: ["Dispatch", "Logistics"],
-        hourlyRate: 32,
+        location: "Cork",
         organizationId: org.id,
       },
     }),
@@ -105,7 +105,8 @@ async function main() {
       name: "Marco Rossi",
       email: "marco@freelance.eu",
       skills: ["Heavy Machinery", "Welding"],
-      hourlyRate: 45,
+      dayRate: 450,
+      location: "Galway",
       organizationId: org.id,
     },
   });

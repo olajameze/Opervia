@@ -8,6 +8,7 @@ export type AppModule =
   | "workforce"
   | "scheduling"
   | "billing"
+  | "invoicing"
   | "logistics"
   | "analytics"
   | "automations";
@@ -18,6 +19,7 @@ const STARTER_MODULES: AppModule[] = [
   "workforce",
   "scheduling",
   "billing",
+  "invoicing",
 ];
 
 const PRO_MODULES: AppModule[] = [
@@ -34,11 +36,11 @@ export const PLANS = {
     price: 99,
     priceLabel: "£99",
     period: "/month",
-    maxStaff: 5,
-    maxFreelancers: 10,
+    maxStaff: 10,
+    maxFreelancers: 20,
     description: "For small teams getting started with operational management.",
     features: [
-      "Up to 5 staff & 10 freelancers",
+      "Up to 10 staff & 20 freelancers",
       "Equipment & rental tracking",
       "Workforce profiles",
       "Job scheduling & dispatch",
@@ -53,11 +55,11 @@ export const PLANS = {
     price: 199,
     priceLabel: "£199",
     period: "/month",
-    maxStaff: 10,
-    maxFreelancers: 20,
+    maxStaff: 30,
+    maxFreelancers: 50,
     description: "For small to medium businesses that need full operational control.",
     features: [
-      "Up to 10 staff & 20 freelancers",
+      "Up to 30 staff & 50 freelancers",
       "Everything in Starter",
       "Logistics tracking",
       "Analytics dashboard",
@@ -93,6 +95,7 @@ export const TRIAL_MODULES: AppModule[] = [
   "workforce",
   "scheduling",
   "billing",
+  "invoicing",
   "logistics",
   "analytics",
 ];
@@ -341,6 +344,7 @@ export function modulePath(module: AppModule): string {
     workforce: "/workforce",
     scheduling: "/scheduling",
     billing: "/billing",
+    invoicing: "/invoicing",
     logistics: "/logistics",
     analytics: "/analytics",
     automations: "/automations",
@@ -354,6 +358,7 @@ export function pathToModule(pathname: string): AppModule | null {
   if (pathname.startsWith("/workforce")) return "workforce";
   if (pathname.startsWith("/scheduling")) return "scheduling";
   if (pathname.startsWith("/billing")) return "billing";
+  if (pathname.startsWith("/invoicing")) return "invoicing";
   if (pathname.startsWith("/logistics")) return "logistics";
   if (pathname.startsWith("/analytics")) return "analytics";
   if (pathname.startsWith("/automations")) return "automations";
