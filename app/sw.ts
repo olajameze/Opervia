@@ -17,7 +17,10 @@ const appRoutes = [
   "/rentals",
   "/workforce",
   "/logistics",
+  "/invoicing",
   "/billing",
+  "/analytics",
+  "/automations",
   "/settings",
   "/offline",
 ];

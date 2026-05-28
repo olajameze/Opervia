@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { getPendingMutationCount, flushMutationQueue } from "@/lib/pwa/sync-queue";
+import { registerServiceWorker } from "@/lib/pwa/service-worker-registration";
 import { getSnapshot } from "@/lib/pwa/offline-db";
 import { pullSnapshot } from "@/lib/pwa/sync";
 import { PWA_SYNC_EVENT, type SyncSnapshot } from "@/lib/pwa/types";
@@ -59,11 +60,7 @@ export function PwaProvider({ children }: { children: ReactNode }) {
     setIsOnline(navigator.onLine);
     setIsInstalled(readInstalled());
 
-    if ("serviceWorker" in navigator && process.env.NODE_ENV === "production") {
-      navigator.serviceWorker.register("/sw.js").catch(() => {
-        // Service worker registration is best-effort.
-      });
-    }
+    const unregisterServiceWorker = registerServiceWorker();
 
     void refreshLocalState();
 
@@ -82,6 +79,7 @@ export function PwaProvider({ children }: { children: ReactNode }) {
     window.addEventListener(PWA_SYNC_EVENT, handleSync);
 
     return () => {
+      unregisterServiceWorker?.();
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
       window.removeEventListener(PWA_SYNC_EVENT, handleSync);
