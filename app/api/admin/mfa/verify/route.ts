@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { requireSuperAdminApi } from "@/lib/super-admin";
 import { verifyTotpCode } from "@/lib/mfa/totp";
+import { setSuperAdminMfaCookie } from "@/lib/mfa/super-admin-mfa-cookie";
 import { ipRateLimit } from "@/lib/security/rate-limit";
 
 const schema = z.object({
@@ -34,6 +35,14 @@ export async function POST(req: Request) {
 
   if (!verifyTotpCode(user.totpSecret, code)) {
     return NextResponse.json({ error: "Invalid verification code" }, { status: 401 });
+  }
+
+  const cookieSet = await setSuperAdminMfaCookie(ctx.userId);
+  if (!cookieSet) {
+    return NextResponse.json(
+      { error: "Could not establish MFA session. Check AUTH_SECRET." },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({ ok: true });

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,7 +17,6 @@ import { BRAND } from "@/lib/branding";
 
 export function SuperAdminMfaForm() {
   const router = useRouter();
-  const { update } = useSession();
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -41,9 +39,8 @@ export function SuperAdminMfaForm() {
       return;
     }
 
-    await update({ superAdminMfaVerified: true });
+    await router.refresh();
     router.push("/super-admin");
-    router.refresh();
   }
 
   return (

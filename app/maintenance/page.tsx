@@ -17,7 +17,7 @@ export default async function MaintenancePage() {
   await requireSuperAdmin();
   const settings = await getSystemSettings();
 
-  const [userCount, orgCount, jobCount, recentAuditLogs] = await Promise.all([
+  const [userCount, orgCount, jobCount, recentAuditLogs, dbHealthy] = await Promise.all([
     prisma.user.count(),
     prisma.organization.count(),
     prisma.job.count(),
@@ -26,6 +26,7 @@ export default async function MaintenancePage() {
       take: 10,
       include: { user: { select: { email: true } } },
     }),
+    prisma.$queryRaw<{ ok: number }[]>`SELECT 1 as ok`.then(() => true).catch(() => false),
   ]);
 
   return (
@@ -49,7 +50,7 @@ export default async function MaintenancePage() {
           <StatCard title="Users" value={userCount} icon={Users} />
           <StatCard title="Organizations" value={orgCount} icon={Database} />
           <StatCard title="Jobs" value={jobCount} icon={Activity} />
-          <StatCard title="System" value="Online" icon={Server} />
+          <StatCard title="System" value={dbHealthy ? "Online" : "Degraded"} icon={Server} />
         </div>
 
         <div className="rounded-lg border bg-card">

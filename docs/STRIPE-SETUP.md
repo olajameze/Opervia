@@ -69,6 +69,7 @@ Use Stripe test mode locally first (`sk_test_...`), then repeat with live keys o
 
 ```bash
 stripe listen --forward-to localhost:3000/api/stripe/webhook
+npm run launch:check
 ```
 
 Verify:

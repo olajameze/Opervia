@@ -2,6 +2,18 @@
 
 Opervia stores all customer data in PostgreSQL (typically Neon on Vercel).
 
+## Pre-launch checklist
+
+Before pointing real users at production:
+
+1. Enable **Point-in-Time Recovery (PITR)** on your Neon production branch
+2. Record your recovery window (e.g. 7 days on paid plans)
+3. Document who can initiate restores and the approval process
+4. Run one manual `pg_dump` to confirm credentials work (see below)
+5. Enable maintenance mode from `/maintenance` if you need to stop writes during an incident
+
+Automated env validation: `npm run launch:check`
+
 ## Neon (recommended)
 
 If using Neon:
@@ -34,6 +46,10 @@ Workspace owners can export JSON from **Settings → Workspace data & deletion**
 
 If data loss is suspected:
 
-1. Stop writes (enable maintenance mode via super admin)
+1. Stop writes (enable maintenance mode via super admin at `/maintenance`)
 2. Contact Neon support or restore from PITR
 3. Notify affected customers per GDPR breach assessment if personal data was lost
+
+## Maintenance console
+
+The maintenance page at `/maintenance` shows database connectivity (`Online` / `Degraded`) and recent audit activity. Use maintenance mode before destructive recovery operations.

@@ -13,7 +13,28 @@ import {
   sendWelcomeEmail,
 } from "@/lib/registration-emails";
 
+import { cookies } from "next/headers";
+import {
+  SUPER_ADMIN_MFA_COOKIE,
+  verifySuperAdminMfaCookieValue,
+} from "@/lib/mfa/super-admin-mfa-cookie";
 import type { JWT } from "next-auth/jwt";
+
+async function applySuperAdminMfaFromCookie(token: JWT) {
+  if (!token.id) return;
+
+  if (!token.totpEnabled) {
+    token.superAdminMfaVerified = true;
+    return;
+  }
+
+  const cookieStore = cookies();
+  const cookie = cookieStore.get(SUPER_ADMIN_MFA_COOKIE)?.value;
+  token.superAdminMfaVerified = await verifySuperAdminMfaCookieValue(
+    token.id as string,
+    cookie
+  );
+}
 
 async function loadUserFlagsIntoToken(token: JWT) {
   if (!token.id) return;
@@ -149,24 +170,27 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       return true;
     },
-    async jwt({ token, user, trigger, session }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id;
         await loadUserFlagsIntoToken(token);
         await loadMembershipIntoToken(token);
-        token.superAdminMfaVerified = token.totpEnabled ? false : true;
       } else if (trigger === "update") {
         await loadUserFlagsIntoToken(token);
         await loadMembershipIntoToken(token);
-        if (session && typeof session.superAdminMfaVerified === "boolean") {
-          token.superAdminMfaVerified = session.superAdminMfaVerified;
-        }
       }
 
+      await applySuperAdminMfaFromCookie(token);
       return token;
     },
   },
   events: {
+    async signOut() {
+      const { clearSuperAdminMfaCookie } = await import(
+        "@/lib/mfa/super-admin-mfa-cookie"
+      );
+      await clearSuperAdminMfaCookie();
+    },
     async createUser({ user }) {
       if (!user.email) return;
 

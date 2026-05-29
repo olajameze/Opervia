@@ -17,7 +17,7 @@ import { BRAND } from "@/lib/branding";
 
 export function SuperAdminSecurityPanel() {
   const router = useRouter();
-  const { data: session, update } = useSession();
+  const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
   const [setupLoading, setSetupLoading] = useState(false);
   const [error, setError] = useState("");
@@ -70,11 +70,10 @@ export function SuperAdminSecurityPanel() {
       return;
     }
 
-    await update({ superAdminMfaVerified: true });
     setSuccess("Multi-factor authentication is now enabled for your super admin account.");
     setCode("");
     setQrDataUrl(null);
-    router.refresh();
+    await router.refresh();
   }
 
   return (

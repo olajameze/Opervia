@@ -17,7 +17,9 @@
     "db:studio": "prisma studio",
     "test": "vitest run",
     "test:watch": "vitest",
-    "email:test": "tsx --env-file=.env scripts/test-resend-email.ts"
+    "email:test": "tsx --env-file=.env scripts/test-resend-email.ts",
+    "email:test-signup": "tsx --env-file=.env scripts/test-signup-email.ts",
+    "launch:check": "tsx --env-file=.env scripts/launch-check.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.7.4",

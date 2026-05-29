@@ -28,7 +28,7 @@ const faqs = [
   {
     question: "Does Opervia integrate with Stripe for billing?",
     answer:
-      "Yes. Opervia includes native Stripe integration for subscription billing, invoice generation, and payment collection.",
+      "Yes. Opervia uses Stripe for SaaS subscription billing (Checkout, Customer Portal, and webhooks). Customer invoices inside Opervia are recorded manually — they are not collected via Stripe Payment Intents.",
   },
   {
     question: "Is my data secure?",

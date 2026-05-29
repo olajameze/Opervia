@@ -7,6 +7,10 @@ import {
   isMaintenanceExemptPath,
   maintenanceModeJsonResponse,
 } from "@/lib/maintenance-paths";
+import {
+  SUPER_ADMIN_MFA_COOKIE,
+  isSuperAdminMfaSatisfied,
+} from "@/lib/mfa/super-admin-mfa-cookie";
 
 const { auth } = NextAuth(authConfig);
 
@@ -168,11 +172,21 @@ export default auth(async (req) => {
     return withSecurityHeaders(NextResponse.redirect(new URL("/dashboard", req.url)));
   }
 
+  const superAdminMfaSatisfied =
+    isLoggedIn && req.auth?.user?.id
+      ? await isSuperAdminMfaSatisfied({
+          userId: req.auth.user.id,
+          totpEnabled: Boolean(req.auth.user.totpEnabled),
+          jwtVerified: Boolean(req.auth.user.superAdminMfaVerified),
+          cookieValue: req.cookies.get(SUPER_ADMIN_MFA_COOKIE)?.value,
+        })
+      : true;
+
   if (
     isLoggedIn &&
     req.auth?.user?.isSuperAdmin &&
     req.auth.user.totpEnabled &&
-    !req.auth.user.superAdminMfaVerified &&
+    !superAdminMfaSatisfied &&
     !isSuperAdminMfaExemptPath(pathname) &&
     (isSuperAdminRoute || isAdminApiRoute)
   ) {

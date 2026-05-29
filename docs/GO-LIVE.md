@@ -2,6 +2,13 @@
 
 Use this checklist before pointing real users at production.
 
+Run automated checks locally or against staging:
+
+```bash
+npm run launch:check
+npm run email:test-signup
+```
+
 ## 1. Domain and environment (Vercel Production)
 
 Set these on **Production** (not Preview):
@@ -17,16 +24,25 @@ Set these on **Production** (not Preview):
 
 Add your custom domain in Vercel → Project → Settings → Domains.
 
+Startup logs will warn about missing production variables via `lib/production-config.ts`.
+
 ## 2. Email (Resend)
 
 1. Verify your sending domain in [Resend](https://resend.com/domains)
 2. Set `RESEND_API_KEY` and `RESEND_FROM` (e.g. `Opervia <no-reply@yourdomain.com>`)
-3. Set `OPERVIA_SIGNUP_NOTIFY_EMAIL` for new signup alerts
-4. Smoke-test: register → verify email → forgot password → contact form
+3. Set `OPERVIA_SIGNUP_NOTIFY_EMAIL=opervia@gmail.com` for new signup alerts
+4. Smoke-test:
+   - `npm run email:test` — basic Resend delivery
+   - `npm run email:test-signup` — signup admin notification to opervia@gmail.com
+   - Register → verify email → forgot password → contact form
 
 ## 3. Stripe (live mode)
 
 See [STRIPE-SETUP.md](./STRIPE-SETUP.md).
+
+Replace test keys with live keys, live price IDs, and register the webhook at:
+
+`https://<your-domain>/api/stripe/webhook`
 
 ## 4. Bot protection
 
@@ -34,6 +50,8 @@ Set both Turnstile keys in production:
 
 - `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
 - `TURNSTILE_SECRET_KEY`
+
+Without both keys, public forms skip CAPTCHA verification.
 
 ## 5. Rate limiting (recommended at scale)
 
@@ -54,21 +72,28 @@ Set on Production:
 
 Have a solicitor review `/terms`, `/privacy`, and `/security`.
 
-## 7. Analytics
+## 7. Super admin security
+
+1. Sign in as a super admin
+2. Open `/super-admin/security`
+3. Enable TOTP MFA before launch
+4. Super admin MFA is enforced via a server-signed cookie (not client session state)
+
+## 8. Analytics
 
 Set `NEXT_PUBLIC_GA_MEASUREMENT_ID` only after confirming cookie consent gating works.
 
 Set `NEXT_PUBLIC_STRIPE_TEST_MODE=true` if you intentionally run test Stripe keys on a staging environment.
 
-## 8. Never seed production
+## 9. Never seed production
 
 `npm run db:seed` is blocked in production. Demo credentials exist for local dev only.
 
-## 9. Backups
+## 10. Backups
 
-See [BACKUPS.md](./BACKUPS.md).
+See [BACKUPS.md](./BACKUPS.md). Enable Neon PITR before launch.
 
-## 10. Smoke test
+## 11. Smoke test
 
 1. Register → verify email → onboarding → dashboard
 2. Trial features → subscribe via Stripe Checkout
@@ -76,3 +101,4 @@ See [BACKUPS.md](./BACKUPS.md).
 4. Cookie banner: Decline → no GA; Accept → GA loads
 5. Settings → export workspace JSON → delete workspace (test org only)
 6. Super admin → MFA → maintenance mode toggle
+7. Confirm signup alert email arrives at opervia@gmail.com

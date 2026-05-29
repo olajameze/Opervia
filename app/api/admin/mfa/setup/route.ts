@@ -8,6 +8,7 @@ import {
   mfaSetupIdentifier,
   verifyTotpCode,
 } from "@/lib/mfa/totp";
+import { setSuperAdminMfaCookie } from "@/lib/mfa/super-admin-mfa-cookie";
 
 const MFA_SETUP_TTL_MS = 15 * 60 * 1000;
 
@@ -87,6 +88,14 @@ export async function POST(req: Request) {
     }),
     prisma.verificationToken.deleteMany({ where: { identifier } }),
   ]);
+
+  const cookieSet = await setSuperAdminMfaCookie(ctx.userId);
+  if (!cookieSet) {
+    return NextResponse.json(
+      { error: "MFA enabled but session could not be verified. Check AUTH_SECRET." },
+      { status: 500 }
+    );
+  }
 
   return NextResponse.json({ ok: true, enabled: true });
 }

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { requireSuperAdminApi } from "@/lib/super-admin";
+import { requireSuperAdminApi, isSuperAdminUser } from "@/lib/super-admin";
 
 const schema = z.object({
   action: z.enum(["freeze", "unfreeze"]),
@@ -21,7 +21,7 @@ export async function PATCH(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    if (user.isSuperAdmin && body.action === "freeze") {
+    if ((await isSuperAdminUser(user.id)) && body.action === "freeze") {
       return NextResponse.json({ error: "Cannot freeze super admin" }, { status: 400 });
     }
 
@@ -48,7 +48,7 @@ export async function DELETE(
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  if (user.isSuperAdmin) {
+  if (await isSuperAdminUser(user.id)) {
     return NextResponse.json({ error: "Cannot delete super admin" }, { status: 400 });
   }
 

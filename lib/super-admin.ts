@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { isSuperAdminMfaCookieValid } from "@/lib/mfa/super-admin-mfa-cookie";
 
 export function superAdminEmails(): string[] {
   return (
@@ -41,7 +42,7 @@ export async function requireSuperAdmin(options?: SuperAdminGuardOptions) {
   if (!session?.user?.id) redirect("/login?callbackUrl=/super-admin");
   if (!(await isSuperAdminUser(session.user.id))) redirect("/dashboard");
 
-  if (!options?.skipMfa && requiresSuperAdminMfa(session)) {
+  if (!options?.skipMfa && (await requiresSuperAdminMfa(session))) {
     redirect("/super-admin/mfa");
   }
 
@@ -62,7 +63,7 @@ export async function requireSuperAdminApi(options?: SuperAdminGuardOptions) {
     };
   }
 
-  if (!options?.skipMfa && requiresSuperAdminMfa(session)) {
+  if (!options?.skipMfa && (await requiresSuperAdminMfa(session))) {
     return {
       error: NextResponse.json(
         { error: "MFA verification required", code: "MFA_REQUIRED" },
