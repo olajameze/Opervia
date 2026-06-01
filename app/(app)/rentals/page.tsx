@@ -74,10 +74,14 @@ export default async function RentalsPage() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <EquipmentForm />
-        {equipment.length > 0 && (
-          <EquipmentAllocationForm equipment={pickerEquipment} jobs={jobs.map((j) => ({ id: j.id, title: j.title }))} />
-        )}
       </div>
+
+      {equipment.length > 0 && (
+        <EquipmentAllocationForm
+          equipment={pickerEquipment}
+          jobs={jobs.map((j) => ({ id: j.id, title: j.title }))}
+        />
+      )}
 
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard title="Total Units" value={totalUnits} icon={Package} />

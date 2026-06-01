@@ -15,10 +15,12 @@ export function WorkforceDocumentUpload({
   staffProfileId,
   freelancerProfileId,
   documents = [],
+  uploadsConfigured = true,
 }: {
   staffProfileId?: string;
   freelancerProfileId?: string;
   documents?: DocumentItem[];
+  uploadsConfigured?: boolean;
 }) {
   const router = useRouter();
   const [label, setLabel] = useState("CV");
@@ -27,7 +29,7 @@ export function WorkforceDocumentUpload({
   const [error, setError] = useState("");
 
   async function upload() {
-    if (!file) return;
+    if (!file || !uploadsConfigured) return;
     setLoading(true);
     setError("");
     const formData = new FormData();
@@ -61,12 +63,19 @@ export function WorkforceDocumentUpload({
           ))}
         </ul>
       )}
+      {!uploadsConfigured && (
+        <p className="text-xs text-muted-foreground">
+          Document uploads require Vercel Blob. Add <code className="text-xs">BLOB_READ_WRITE_TOKEN</code> to your
+          environment.
+        </p>
+      )}
       <div className="flex flex-wrap gap-2">
         <select
           value={label}
           onChange={(e) => setLabel(e.target.value)}
           className="h-9 rounded-md border px-2 text-sm"
           aria-label="Document type"
+          disabled={!uploadsConfigured}
         >
           <option value="CV">CV</option>
           <option value="Insurance">Insurance</option>
@@ -82,8 +91,14 @@ export function WorkforceDocumentUpload({
           accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp"
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           aria-label="Document file"
+          disabled={!uploadsConfigured}
         />
-        <Button type="button" size="sm" onClick={() => void upload()} disabled={!file || loading}>
+        <Button
+          type="button"
+          size="sm"
+          onClick={() => void upload()}
+          disabled={!uploadsConfigured || !file || loading}
+        >
           {loading ? "Uploading..." : "Upload"}
         </Button>
       </div>

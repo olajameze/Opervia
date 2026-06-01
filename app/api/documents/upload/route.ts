@@ -3,6 +3,7 @@ import { put } from "@vercel/blob";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { denyUnlessApiPermission, requireApiOrganization } from "@/lib/api-auth";
+import { isWorkforceUploadConfigured } from "@/lib/blob-config";
 
 const ALLOWED_TYPES = new Set([
   "application/pdf",
@@ -22,7 +23,7 @@ export async function POST(req: Request) {
   const forbidden = denyUnlessApiPermission(ctx.session.user.role, "workforce.write");
   if (forbidden) return forbidden;
 
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+  if (!isWorkforceUploadConfigured()) {
     return NextResponse.json(
       { error: "Document uploads are not configured. Set BLOB_READ_WRITE_TOKEN." },
       { status: 503 }

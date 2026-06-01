@@ -5,6 +5,7 @@ import { StaffForm, FreelancerForm } from "@/components/app/ModuleForms";
 import { WorkforceTables } from "@/components/app/WorkforceTables";
 import { formatStaffLimit, formatFreelancerLimit } from "@/lib/entitlements";
 import { ensureDefaultSkills } from "@/lib/services/skills";
+import { isWorkforceUploadConfigured } from "@/lib/blob-config";
 import { Users, UserCheck } from "lucide-react";
 
 export default async function WorkforcePage() {
@@ -27,6 +28,8 @@ export default async function WorkforcePage() {
     }),
   ]);
 
+  const uploadsConfigured = isWorkforceUploadConfigured();
+
   return (
     <div className="space-y-8">
       <div>
@@ -46,7 +49,7 @@ export default async function WorkforcePage() {
         <StatCard title="Freelancers" value={freelancers.length} icon={UserCheck} />
       </div>
 
-      <WorkforceTables staff={staff} freelancers={freelancers} />
+      <WorkforceTables staff={staff} freelancers={freelancers} uploadsConfigured={uploadsConfigured} />
     </div>
   );
 }

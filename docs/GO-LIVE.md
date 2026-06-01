@@ -79,21 +79,37 @@ Have a solicitor review `/terms`, `/privacy`, and `/security`.
 3. Enable TOTP MFA before launch
 4. Super admin MFA is enforced via a server-signed cookie (not client session state)
 
-## 8. Analytics
+## 8. Workforce documents (Vercel Blob)
+
+Staff and freelancer document uploads (CV, insurance, passport) use [Vercel Blob](https://vercel.com/docs/storage/vercel-blob).
+
+1. In Vercel → **Storage → Create → Blob**, link a store to the Opervia project
+2. Confirm `BLOB_READ_WRITE_TOKEN` is set on **Production** (Vercel injects this when the store is linked)
+3. For local dev, copy the token into `.env`:
+   ```bash
+   npx vercel env pull .env.local
+   ```
+   Or run `npx vercel blob store add opervia-workforce` from the project root, then pull env vars
+4. Restart `npm run dev` after updating `.env`
+5. Smoke-test: Workforce → Edit staff → upload a PDF → confirm the document link opens
+
+Without `BLOB_READ_WRITE_TOKEN`, uploads are disabled in the UI with a configuration notice.
+
+## 9. Analytics
 
 Set `NEXT_PUBLIC_GA_MEASUREMENT_ID` only after confirming cookie consent gating works.
 
 Set `NEXT_PUBLIC_STRIPE_TEST_MODE=true` if you intentionally run test Stripe keys on a staging environment.
 
-## 9. Never seed production
+## 10. Never seed production
 
 `npm run db:seed` is blocked in production. Demo credentials exist for local dev only.
 
-## 10. Backups
+## 11. Backups
 
 See [BACKUPS.md](./BACKUPS.md). Enable Neon PITR before launch.
 
-## 11. Smoke test
+## 12. Smoke test
 
 1. Register → verify email → onboarding → dashboard
 2. Trial features → subscribe via Stripe Checkout
@@ -102,3 +118,4 @@ See [BACKUPS.md](./BACKUPS.md). Enable Neon PITR before launch.
 5. Settings → export workspace JSON → delete workspace (test org only)
 6. Super admin → MFA → maintenance mode toggle
 7. Confirm signup alert email arrives at opervia@gmail.com
+8. Workforce → upload a staff document (requires Blob — see section 8)

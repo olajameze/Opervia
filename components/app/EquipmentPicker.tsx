@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 export type EquipmentOption = {
   id: string;
@@ -46,28 +48,55 @@ export function EquipmentPicker({
         placeholder="Search by name, SKU, or category"
         className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
       />
-      <select
-        id={name}
-        name={name}
-        required={required}
-        value={selectedId}
-        onChange={(e) => setSelectedId(e.target.value)}
+      <div
+        role="group"
         aria-label="Select equipment"
-        className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-        size={Math.min(6, Math.max(3, filtered.length))}
+        className="min-h-[280px] max-h-[360px] overflow-y-auto rounded-md border border-input bg-background"
       >
-        <option value="">Select equipment...</option>
-        {filtered.map((item) => (
-          <option key={item.id} value={item.id}>
-            {item.name}
-            {item.sku ? ` · ${item.sku}` : ""}
-            {item.category ? ` · ${item.category}` : ""} — {item.inStock} in stock
-          </option>
-        ))}
-      </select>
+        {filtered.length === 0 ? (
+          <p className="px-4 py-8 text-center text-sm text-muted-foreground">
+            No equipment matches your search
+          </p>
+        ) : (
+          filtered.map((item, index) => {
+            const isSelected = item.id === selectedId;
+            const inputId = `equipment-option-${item.id}`;
+            return (
+              <label
+                key={item.id}
+                htmlFor={inputId}
+                className={cn(
+                  "flex w-full cursor-pointer items-start justify-between gap-3 border-b border-input px-4 py-3 text-left text-sm transition-colors last:border-b-0 hover:bg-muted/50",
+                  isSelected && "border-primary bg-muted/50"
+                )}
+              >
+                <input
+                  id={inputId}
+                  type="radio"
+                  name={name}
+                  value={item.id}
+                  checked={isSelected}
+                  onChange={() => setSelectedId(item.id)}
+                  required={required && index === 0}
+                  className="sr-only"
+                />
+                <div className="min-w-0 space-y-1">
+                  <p className="font-medium">{item.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {[item.sku, item.category].filter(Boolean).join(" · ") || "No SKU or category"}
+                  </p>
+                </div>
+                <Badge variant={item.inStock > 0 ? "secondary" : "outline"} className="shrink-0">
+                  {item.inStock} in stock
+                </Badge>
+              </label>
+            );
+          })
+        )}
+      </div>
       {selected && (
         <p className="text-xs text-muted-foreground">
-          {selected.inStock} available in stock
+          Selected: {selected.name} — {selected.inStock} available in stock
         </p>
       )}
     </div>

@@ -778,17 +778,19 @@ export function EquipmentAllocationForm({
         }}
       >
         <EquipmentPicker equipment={equipment} />
-        <Field label="Quantity" name="quantity" type="number" placeholder="1" required />
-        <Field
-          label="Job"
-          name="jobId"
-          options={[
-            { value: "", label: "No job" },
-            ...jobs.map((j) => ({ value: j.id, label: j.title })),
-          ]}
-        />
-        <Field label="Start date" name="startDate" type="date" required />
-        <Field label="End date" name="endDate" type="date" />
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:col-span-2">
+          <Field label="Quantity" name="quantity" type="number" placeholder="1" required />
+          <Field
+            label="Job"
+            name="jobId"
+            options={[
+              { value: "", label: "No job" },
+              ...jobs.map((j) => ({ value: j.id, label: j.title })),
+            ]}
+          />
+          <Field label="Start date" name="startDate" type="date" required />
+          <Field label="End date" name="endDate" type="date" />
+        </div>
         {error && <p className="text-sm text-destructive sm:col-span-2">{error}</p>}
         <Button type="submit" disabled={loading} className="sm:col-span-2 w-fit">
           {loading ? "Saving..." : "Allocate equipment"}

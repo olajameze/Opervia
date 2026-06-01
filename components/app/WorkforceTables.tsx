@@ -81,9 +81,11 @@ function filterRows<T extends { name: string; email: string | null; skills: stri
 function EditStaffDialog({
   row,
   onClose,
+  uploadsConfigured,
 }: {
   row: StaffRow;
   onClose: () => void;
+  uploadsConfigured: boolean;
 }) {
   const router = useRouter();
   const [name, setName] = useState(row.name);
@@ -135,7 +137,11 @@ function EditStaffDialog({
           </label>
         </div>
         <SkillPicker value={skills} onChange={setSkills} />
-        <WorkforceDocumentUpload staffProfileId={row.id} documents={row.documents} />
+        <WorkforceDocumentUpload
+          staffProfileId={row.id}
+          documents={row.documents}
+          uploadsConfigured={uploadsConfigured}
+        />
         {error && <p className="text-sm text-destructive">{error}</p>}
         <div className="flex gap-2">
           <Button onClick={() => void save()} disabled={loading}>{loading ? "Saving..." : "Save"}</Button>
@@ -149,9 +155,11 @@ function EditStaffDialog({
 function EditFreelancerDialog({
   row,
   onClose,
+  uploadsConfigured,
 }: {
   row: FreelancerRow;
   onClose: () => void;
+  uploadsConfigured: boolean;
 }) {
   const router = useRouter();
   const [name, setName] = useState(row.name);
@@ -215,7 +223,11 @@ function EditFreelancerDialog({
           </label>
         </div>
         <SkillPicker value={skills} onChange={setSkills} />
-        <WorkforceDocumentUpload freelancerProfileId={row.id} documents={row.documents} />
+        <WorkforceDocumentUpload
+          freelancerProfileId={row.id}
+          documents={row.documents}
+          uploadsConfigured={uploadsConfigured}
+        />
         {error && <p className="text-sm text-destructive">{error}</p>}
         <div className="flex gap-2">
           <Button onClick={() => void save()} disabled={loading}>{loading ? "Saving..." : "Save"}</Button>
@@ -229,9 +241,11 @@ function EditFreelancerDialog({
 export function WorkforceTables({
   staff,
   freelancers,
+  uploadsConfigured,
 }: {
   staff: StaffRow[];
   freelancers: FreelancerRow[];
+  uploadsConfigured: boolean;
 }) {
   const [staffQuery, setStaffQuery] = useState("");
   const [freelancerQuery, setFreelancerQuery] = useState("");
@@ -338,9 +352,19 @@ export function WorkforceTables({
         />
       </div>
 
-      {editStaff && <EditStaffDialog row={editStaff} onClose={() => setEditStaff(null)} />}
+      {editStaff && (
+        <EditStaffDialog
+          row={editStaff}
+          onClose={() => setEditStaff(null)}
+          uploadsConfigured={uploadsConfigured}
+        />
+      )}
       {editFreelancer && (
-        <EditFreelancerDialog row={editFreelancer} onClose={() => setEditFreelancer(null)} />
+        <EditFreelancerDialog
+          row={editFreelancer}
+          onClose={() => setEditFreelancer(null)}
+          uploadsConfigured={uploadsConfigured}
+        />
       )}
     </>
   );
