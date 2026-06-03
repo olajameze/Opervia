@@ -5,6 +5,7 @@ import { SortableDataTable } from "@/components/app/SortableDataTable";
 import { EquipmentEditDialog } from "@/components/app/EquipmentEditDialog";
 import { AddQuantityButton } from "@/components/app/AddQuantityButton";
 import { DeleteButton } from "@/components/app/ModuleForms";
+import { formatCurrency } from "@/lib/utils";
 
 type EquipmentRow = Record<string, unknown> & {
   id: string;
@@ -28,13 +29,7 @@ type EquipmentRow = Record<string, unknown> & {
   }>;
 };
 
-export function RentalsEquipmentTable({
-  rows,
-  formatCurrency,
-}: {
-  rows: EquipmentRow[];
-  formatCurrency: (n: number) => string;
-}) {
+export function RentalsEquipmentTable({ rows }: { rows: EquipmentRow[] }) {
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {

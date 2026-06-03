@@ -9,8 +9,6 @@ import {
 } from "@/components/app/ModuleForms";
 import { getInStock, getOutQuantitiesByEquipment } from "@/lib/services/equipment-inventory";
 import { Package, CheckCircle, Truck } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
-
 export default async function RentalsPage() {
   const { organization } = await getOrganizationContext();
 
@@ -46,7 +44,31 @@ export default async function RentalsPage() {
   const equipmentRows = equipment.map((item) => {
     const outQuantity = outMap.get(item.id) ?? 0;
     const inStock = getInStock(item, outQuantity);
-    return { ...item, outQuantity, inStock };
+    return {
+      id: item.id,
+      name: item.name,
+      sku: item.sku,
+      category: item.category,
+      totalQuantity: item.totalQuantity,
+      dailyRate: item.dailyRate,
+      outQuantity,
+      inStock,
+      allocations: item.allocations.map((allocation) => ({
+        id: allocation.id,
+        quantity: allocation.quantity,
+        job: allocation.job
+          ? {
+              title: allocation.job.title,
+              assignments: allocation.job.assignments.map((a) => ({
+                staffProfile: a.staffProfile ? { name: a.staffProfile.name } : null,
+                freelancerProfile: a.freelancerProfile
+                  ? { name: a.freelancerProfile.name }
+                  : null,
+              })),
+            }
+          : null,
+      })),
+    };
   });
 
   const totalInStock = equipmentRows.reduce((sum, item) => sum + item.inStock, 0);
@@ -91,7 +113,7 @@ export default async function RentalsPage() {
         <StatCard title="Out on Jobs" value={totalOut} icon={Truck} />
       </div>
 
-      <RentalsEquipmentTable rows={equipmentRows} formatCurrency={formatCurrency} />
+      <RentalsEquipmentTable rows={equipmentRows} />
     </div>
   );
 }
