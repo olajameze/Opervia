@@ -156,12 +156,12 @@ export async function POST(
           </p>`,
       });
 
-      if (result.ok && !result.dev) {
-        emailed++;
-      } else if (result.ok && result.dev) {
+      if (!result.ok) {
+        failures.push(`${freelancer.name}: ${result.error}`);
+      } else if (result.dev) {
         failures.push(`${freelancer.name}: email not sent (dev mode — configure Resend)`);
       } else {
-        failures.push(`${freelancer.name}: ${result.error}`);
+        emailed++;
       }
     }
 
