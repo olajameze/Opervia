@@ -345,7 +345,8 @@ export function JobForm({ projects }: { projects: { id: string; name: string }[]
             { value: "URGENT", label: "Urgent" },
           ]}
         />
-        <Field label="Scheduled at" name="scheduledAt" type="datetime-local" />
+        <Field label="Start date" name="startsAt" type="date" />
+        <Field label="End date" name="endsAt" type="date" />
         <Field
           label="Status"
           name="status"
@@ -369,13 +370,15 @@ export function JobForm({ projects }: { projects: { id: string; name: string }[]
 
 export function ShiftForm({
   staff,
+  jobs = [],
 }: {
   staff: { id: string; name: string }[];
+  jobs?: { id: string; title: string }[];
 }) {
   const { loading, error, submit } = useResourceForm("/api/shifts");
 
   return (
-    <FormCard title="Schedule shift">
+    <FormCard title="Staff scheduler">
       <form
         className="grid gap-3 sm:grid-cols-2"
         onSubmit={(e) => {
@@ -389,12 +392,22 @@ export function ShiftForm({
           required
           options={staff.map((s) => ({ value: s.id, label: s.name }))}
         />
-        <Field label="Start" name="startTime" type="datetime-local" required />
-        <Field label="End" name="endTime" type="datetime-local" required />
+        {jobs.length > 0 && (
+          <Field
+            label="Job"
+            name="jobId"
+            options={[
+              { value: "", label: "No job" },
+              ...jobs.map((j) => ({ value: j.id, label: j.title })),
+            ]}
+          />
+        )}
+        <Field label="Start date" name="startTime" type="datetime-local" required />
+        <Field label="End date" name="endTime" type="datetime-local" required />
         <Field label="Notes" name="notes" />
         {error && <p className="text-sm text-destructive sm:col-span-2">{error}</p>}
         <Button type="submit" disabled={loading} className="sm:col-span-2 w-fit">
-          {loading ? "Saving..." : "Schedule shift"}
+          {loading ? "Saving..." : "Schedule & assign staff"}
         </Button>
       </form>
     </FormCard>
@@ -664,6 +677,18 @@ export function ClientForm() {
         <Field label="Client name" name="name" required />
         <Field label="Email" name="email" type="email" />
         <Field label="Phone" name="phone" />
+        <div className="sm:col-span-2 space-y-1.5">
+          <label htmlFor="client-notes" className="text-sm font-medium">
+            Notes / Description
+          </label>
+          <textarea
+            id="client-notes"
+            name="notes"
+            rows={3}
+            className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            placeholder="Client details, billing notes, etc."
+          />
+        </div>
         {error && <p className="text-sm text-destructive sm:col-span-2">{error}</p>}
         <Button type="submit" disabled={loading} className="sm:col-span-2 w-fit">
           {loading ? "Saving..." : "Add client"}
@@ -708,56 +733,55 @@ export function ProjectForm({
   );
 }
 
-export function JobAssignForm({
+export function FreelancerAssignForm({
   jobs,
-  staff,
   freelancers,
 }: {
   jobs: { id: string; title: string }[];
-  staff: { id: string; name: string }[];
   freelancers: { id: string; name: string }[];
 }) {
   const { loading, error, submit } = useResourceForm("/api/assignments");
 
   return (
-    <FormCard title="Assign staff to job">
+    <FormCard title="Assign freelancer to job">
       <form
         className="grid gap-3 sm:grid-cols-2"
         onSubmit={(e) => {
           e.preventDefault();
-          submit(e.currentTarget);
+          const form = e.currentTarget;
+          const formData = new FormData(form);
+          const freelancerId = String(formData.get("freelancerProfileId") ?? "");
+          if (!freelancerId) {
+            return;
+          }
+          submit(form);
         }}
       >
+        <Field
+          label="Freelancer"
+          name="freelancerProfileId"
+          required
+          options={freelancers.map((f) => ({ value: f.id, label: f.name }))}
+        />
         <Field
           label="Job"
           name="jobId"
           required
           options={jobs.map((j) => ({ value: j.id, label: j.title }))}
         />
-        <Field
-          label="Staff member"
-          name="staffProfileId"
-          options={[
-            { value: "", label: "None" },
-            ...staff.map((s) => ({ value: s.id, label: s.name })),
-          ]}
-        />
-        <Field
-          label="Freelancer"
-          name="freelancerProfileId"
-          options={[
-            { value: "", label: "None" },
-            ...freelancers.map((f) => ({ value: f.id, label: f.name })),
-          ]}
-        />
+        <Field label="Start time" name="startTime" type="datetime-local" />
+        <Field label="End time" name="endTime" type="datetime-local" />
         {error && <p className="text-sm text-destructive sm:col-span-2">{error}</p>}
         <Button type="submit" disabled={loading} className="sm:col-span-2 w-fit">
-          {loading ? "Saving..." : "Assign to job"}
+          {loading ? "Saving..." : "Assign freelancer"}
         </Button>
       </form>
     </FormCard>
   );
 }
+
+/** @deprecated Use FreelancerAssignForm — kept for backwards compatibility */
+export const JobAssignForm = FreelancerAssignForm;
 
 export function EquipmentAllocationForm({
   equipment,

@@ -9,6 +9,8 @@ export type SyncSnapshot = {
     status: string;
     priority: string;
     scheduledAt: string | null;
+    startsAt: string | null;
+    endsAt: string | null;
     projectId: string | null;
     project?: { id: string; name: string } | null;
     assignments?: Array<{
@@ -25,7 +27,7 @@ export type SyncSnapshot = {
     staffProfile?: { id: string; name: string } | null;
   }>;
   projects: Array<{ id: string; name: string; clientId: string | null }>;
-  clients: Array<{ id: string; name: string; email: string | null; phone: string | null }>;
+  clients: Array<{ id: string; name: string; email: string | null; phone: string | null; notes: string | null }>;
   staff: Array<{ id: string; name: string; email: string | null; skills: string | null }>;
   freelancers: Array<{ id: string; name: string; email: string | null; skills: string | null }>;
   assignments: Array<{

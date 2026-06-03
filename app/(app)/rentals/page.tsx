@@ -1,13 +1,11 @@
 import { getOrganizationContext } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/db";
-import { DataTable } from "@/components/app/DataTable";
+import { DataImportPanel } from "@/components/app/DataImportPanel";
+import { RentalsEquipmentTable } from "@/components/app/RentalsEquipmentTable";
 import { StatCard } from "@/components/app/StatCard";
-import { AddQuantityButton } from "@/components/app/AddQuantityButton";
 import {
   EquipmentForm,
   EquipmentAllocationForm,
-  DeleteButton,
-  ReleaseAllocationButton,
 } from "@/components/app/ModuleForms";
 import { getInStock, getOutQuantitiesByEquipment } from "@/lib/services/equipment-inventory";
 import { Package, CheckCircle, Truck } from "lucide-react";
@@ -77,11 +75,15 @@ export default async function RentalsPage() {
       </div>
 
       {equipment.length > 0 && (
-        <EquipmentAllocationForm
-          equipment={pickerEquipment}
-          jobs={jobs.map((j) => ({ id: j.id, title: j.title }))}
-        />
+        <div className="max-w-xl">
+          <EquipmentAllocationForm
+            equipment={pickerEquipment}
+            jobs={jobs.map((j) => ({ id: j.id, title: j.title }))}
+          />
+        </div>
       )}
+
+      <DataImportPanel allowedResources={["equipment"]} compact />
 
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard title="Total Units" value={totalUnits} icon={Package} />
@@ -89,83 +91,7 @@ export default async function RentalsPage() {
         <StatCard title="Out on Jobs" value={totalOut} icon={Truck} />
       </div>
 
-      <DataTable
-        data={equipmentRows}
-        emptyMessage="No equipment added yet. Add your first item to get started."
-        columns={[
-          { key: "name", header: "Equipment" },
-          { key: "sku", header: "SKU" },
-          { key: "category", header: "Category" },
-          { key: "totalQuantity", header: "Total" },
-          { key: "inStock", header: "In Stock" },
-          { key: "outQuantity", header: "Out on Jobs" },
-          {
-            key: "allocations",
-            header: "Allocated to",
-            render: (row) => {
-              const allocations = row.allocations as Array<{
-                id: string;
-                quantity: number;
-                startDate: Date;
-                job?: {
-                  title: string;
-                  project?: { client?: { name: string } | null } | null;
-                  assignments?: Array<{
-                    staffProfile?: { name: string } | null;
-                    freelancerProfile?: { name: string } | null;
-                  }>;
-                } | null;
-              }>;
-
-              if (allocations.length === 0) {
-                return <span className="text-muted-foreground">—</span>;
-              }
-
-              return (
-                <div className="space-y-2 text-sm">
-                  {allocations.map((allocation) => {
-                    const job = allocation.job;
-                    const assignee =
-                      job?.assignments?.[0]?.staffProfile?.name ??
-                      job?.assignments?.[0]?.freelancerProfile?.name;
-                    return (
-                      <div key={allocation.id} className="border-b pb-2 last:border-0">
-                        <p className="font-medium">
-                          {allocation.quantity}× {job?.title ?? "Unassigned job"}
-                        </p>
-                        {assignee && (
-                          <p className="text-xs text-muted-foreground">With: {assignee}</p>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            },
-          },
-          {
-            key: "dailyRate",
-            header: "Daily Rate",
-            render: (row) => (row.dailyRate ? formatCurrency(row.dailyRate as number) : "—"),
-          },
-          {
-            key: "id",
-            header: "Actions",
-            render: (row) => {
-              const allocations = row.allocations as Array<{ id: string }>;
-              return (
-                <div className="flex flex-wrap gap-2">
-                  <AddQuantityButton equipmentId={row.id as string} />
-                  {allocations.map((allocation) => (
-                    <ReleaseAllocationButton key={allocation.id} allocationId={allocation.id} />
-                  ))}
-                  <DeleteButton endpoint={`/api/equipment/${row.id as string}`} />
-                </div>
-              );
-            },
-          },
-        ]}
-      />
+      <RentalsEquipmentTable rows={equipmentRows} formatCurrency={formatCurrency} />
     </div>
   );
 }

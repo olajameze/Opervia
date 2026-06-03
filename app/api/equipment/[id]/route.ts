@@ -6,6 +6,7 @@ import { syncEquipmentStatus } from "@/lib/services/equipment-inventory";
 
 const schema = z.object({
   addQuantity: z.coerce.number().int().positive().optional(),
+  setQuantity: z.coerce.number().int().positive().optional(),
   name: z.string().min(1).optional(),
   sku: z.string().optional().nullable(),
   category: z.string().optional().nullable(),
@@ -37,6 +38,7 @@ export async function PATCH(
         ...(body.addQuantity !== undefined && {
           totalQuantity: { increment: body.addQuantity },
         }),
+        ...(body.setQuantity !== undefined && { totalQuantity: body.setQuantity }),
         ...(body.name !== undefined && { name: body.name }),
         ...(body.sku !== undefined && { sku: body.sku }),
         ...(body.category !== undefined && { category: body.category }),

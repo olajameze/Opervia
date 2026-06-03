@@ -1,487 +1,173 @@
 import { getOrganizationContext } from "@/lib/auth-helpers";
-
 import { prisma } from "@/lib/db";
-
-import { DataTable } from "@/components/app/DataTable";
-
+import { RegistryListPanel, type RegistryRow } from "@/components/app/RegistryListPanel";
 import { StatCard } from "@/components/app/StatCard";
-
-import { Badge } from "@/components/ui/badge";
-
 import {
   JobForm,
   ShiftForm,
   ClientForm,
   ProjectForm,
-  JobAssignForm,
-  DeleteButton,
-  StatusSelect,
+  FreelancerAssignForm,
 } from "@/components/app/ModuleForms";
-import { SchedulingJobActions } from "@/components/app/SchedulingJobActions";
-
+import {
+  SchedulingJobsTableClient,
+  SchedulingShiftsTableClient,
+  SchedulingAssignmentsTableClient,
+} from "@/components/app/SchedulingTables";
 import { Calendar, Clock, CheckCircle } from "lucide-react";
 
-import { formatDate } from "@/lib/utils";
-
-
-
 export default async function SchedulingPage() {
-
   const { organization } = await getOrganizationContext();
 
-
-
   const [jobs, shifts, projects, clients, staff, freelancers, assignments] = await Promise.all([
-
     prisma.job.findMany({
-
       where: { organizationId: organization.id },
-
-      orderBy: { scheduledAt: "asc" },
-
+      orderBy: { startsAt: "asc" },
       include: {
-
         project: true,
-
         assignments: { include: { staffProfile: true, freelancerProfile: true } },
-
       },
-
     }),
-
     prisma.shift.findMany({
-
       where: { organizationId: organization.id },
-
       orderBy: { startTime: "asc" },
-
-      take: 20,
-
-      include: { staffProfile: true },
-
+      include: { staffProfile: true, job: true },
     }),
-
     prisma.project.findMany({
-
       where: { organizationId: organization.id },
-
       orderBy: { name: "asc" },
-
+      include: { client: true },
     }),
-
     prisma.client.findMany({
-
       where: { organizationId: organization.id },
-
       orderBy: { name: "asc" },
-
     }),
-
     prisma.staffProfile.findMany({
-
       where: { organizationId: organization.id },
-
       orderBy: { name: "asc" },
-
     }),
-
     prisma.freelancerProfile.findMany({
-
       where: { organizationId: organization.id },
-
       orderBy: { name: "asc" },
-
     }),
-
     prisma.assignment.findMany({
-
       where: { organizationId: organization.id },
-
       orderBy: { assignedAt: "desc" },
-
-      take: 20,
-
       include: {
-
         job: true,
-
         staffProfile: true,
-
         freelancerProfile: true,
-
       },
-
     }),
-
   ]);
 
-
-
   const scheduled = jobs.filter((j) => j.status === "SCHEDULED").length;
-
   const inProgress = jobs.filter((j) => j.status === "IN_PROGRESS").length;
-
   const completed = jobs.filter((j) => j.status === "COMPLETED").length;
 
-
+  const jobOptions = jobs.map((j) => ({ id: j.id, title: j.title }));
+  const clientRows: RegistryRow[] = clients.map((c) => ({
+    id: c.id,
+    name: c.name,
+    email: c.email ?? "—",
+    phone: c.phone ?? "—",
+    notes: c.notes ?? "—",
+  }));
+  const projectRows: RegistryRow[] = projects.map((p) => ({
+    id: p.id,
+    name: p.name,
+    client: p.client?.name ?? "—",
+    description: p.description ?? "—",
+    status: p.status,
+  }));
 
   return (
-
     <div className="space-y-8">
-
       <div>
-
         <h1 className="text-2xl font-bold">Scheduling & Dispatch</h1>
-
         <p className="text-muted-foreground">
-
-          Plan jobs, assign staff, and manage shift schedules.
-
+          Plan jobs, assign staff, schedule freelancers, and manage dispatch.
         </p>
-
       </div>
-
-
 
       <div className="grid gap-4 md:grid-cols-2">
-
         <ClientForm />
-
         <ProjectForm clients={clients.map((c) => ({ id: c.id, name: c.name }))} />
-
       </div>
 
+      <div className="grid gap-4 md:grid-cols-2">
+        <RegistryListPanel
+          title="Clients"
+          rows={clientRows}
+          searchPlaceholder="Search by name, email, phone, notes…"
+          filterRow={(row, q) =>
+            [row.name, row.email, row.phone, row.notes].join(" ").toLowerCase().includes(q)
+          }
+          columns={[
+            { key: "name", header: "Name" },
+            { key: "email", header: "Email" },
+            { key: "phone", header: "Phone" },
+          ]}
+        />
+        <RegistryListPanel
+          title="Projects"
+          rows={projectRows}
+          searchPlaceholder="Search by project name or client…"
+          filterRow={(row, q) =>
+            [row.name, row.client, row.description].join(" ").toLowerCase().includes(q)
+          }
+          columns={[
+            { key: "name", header: "Project" },
+            { key: "client", header: "Client" },
+            { key: "status", header: "Status" },
+          ]}
+        />
+      </div>
 
+      <JobForm projects={projects.map((p) => ({ id: p.id, name: p.name }))} />
 
       <div className="grid gap-4 lg:grid-cols-2">
-
-        <JobForm projects={projects.map((p) => ({ id: p.id, name: p.name }))} />
-
         {staff.length > 0 && (
-
-          <ShiftForm staff={staff.map((s) => ({ id: s.id, name: s.name }))} />
-
+          <ShiftForm
+            staff={staff.map((s) => ({ id: s.id, name: s.name }))}
+            jobs={jobOptions}
+          />
         )}
-
+        {freelancers.length > 0 && jobs.length > 0 && (
+          <FreelancerAssignForm
+            jobs={jobOptions}
+            freelancers={freelancers.map((f) => ({ id: f.id, name: f.name }))}
+          />
+        )}
       </div>
-
-
-
-      {jobs.length > 0 && (staff.length > 0 || freelancers.length > 0) && (
-
-        <JobAssignForm
-
-          jobs={jobs.map((j) => ({ id: j.id, title: j.title }))}
-
-          staff={staff.map((s) => ({ id: s.id, name: s.name }))}
-
-          freelancers={freelancers.map((f) => ({ id: f.id, name: f.name }))}
-
-        />
-
-      )}
-
-
 
       <div className="grid gap-4 sm:grid-cols-3">
-
         <StatCard title="Scheduled" value={scheduled} icon={Calendar} />
-
         <StatCard title="In Progress" value={inProgress} icon={Clock} />
-
         <StatCard title="Completed" value={completed} icon={CheckCircle} />
-
       </div>
 
-
-
       <div className="space-y-4">
-
         <h2 className="text-lg font-semibold">Jobs</h2>
-
-        <DataTable
-
-          data={jobs}
-
-          emptyMessage="No jobs scheduled yet."
-
-          columns={[
-
-            { key: "title", header: "Job" },
-
-            {
-
-              key: "project",
-
-              header: "Project",
-
-              render: (row) =>
-
-                (row.project as { name: string } | null)?.name ?? "—",
-
-            },
-
-            {
-
-              key: "status",
-
-              header: "Status",
-
-              render: (row) => (
-
-                <StatusSelect
-
-                  endpoint={`/api/jobs/${row.id as string}`}
-
-                  field="status"
-
-                  label="Update job status"
-
-                  value={String(row.status)}
-
-                  options={[
-
-                    { value: "DRAFT", label: "Draft" },
-
-                    { value: "SCHEDULED", label: "Scheduled" },
-
-                    { value: "DISPATCHED", label: "Dispatched" },
-
-                    { value: "IN_PROGRESS", label: "In progress" },
-
-                    { value: "COMPLETED", label: "Completed" },
-
-                    { value: "CANCELLED", label: "Cancelled" },
-
-                  ]}
-
-                />
-
-              ),
-
-            },
-
-            {
-
-              key: "priority",
-
-              header: "Priority",
-
-              render: (row) => <Badge variant="outline">{String(row.priority)}</Badge>,
-
-            },
-
-            {
-
-              key: "scheduledAt",
-
-              header: "Scheduled",
-
-              render: (row) => formatDate(row.scheduledAt as Date | null),
-
-            },
-
-            {
-
-              key: "assignments",
-
-              header: "Assigned",
-
-              render: (row) => {
-
-                const assignments = row.assignments as Array<{
-
-                  staffProfile?: { name: string };
-
-                  freelancerProfile?: { name: string };
-
-                }>;
-
-                return assignments.length > 0
-
-                  ? assignments
-
-                      .map(
-
-                        (a) =>
-
-                          a.staffProfile?.name ?? a.freelancerProfile?.name ?? "—"
-
-                      )
-
-                      .join(", ")
-
-                  : "Unassigned";
-
-              },
-
-            },
-
-            {
-
-              key: "id",
-
-              header: "Actions",
-
-              render: (row) => (
-                <div className="space-y-2">
-                  <SchedulingJobActions
-                    jobId={row.id as string}
-                    freelancers={freelancers.map((f) => ({
-                      id: f.id,
-                      name: f.name,
-                      email: f.email,
-                    }))}
-                  />
-                  <DeleteButton endpoint={`/api/jobs/${row.id as string}`} />
-                </div>
-              ),
-
-            },
-
-          ]}
-
+        <SchedulingJobsTableClient
+          jobs={jobs}
+          freelancers={freelancers.map((f) => ({
+            id: f.id,
+            name: f.name,
+            email: f.email,
+          }))}
         />
-
       </div>
-
-
 
       <div className="space-y-4">
-
-        <h2 className="text-lg font-semibold">Upcoming Shifts</h2>
-
-        <DataTable
-
-          data={shifts}
-
-          emptyMessage="No shifts scheduled."
-
-          columns={[
-
-            {
-
-              key: "staffProfile",
-
-              header: "Staff",
-
-              render: (row) => (row.staffProfile as { name: string }).name,
-
-            },
-
-            {
-
-              key: "startTime",
-
-              header: "Start",
-
-              render: (row) => formatDate(row.startTime as Date),
-
-            },
-
-            {
-
-              key: "endTime",
-
-              header: "End",
-
-              render: (row) => formatDate(row.endTime as Date),
-
-            },
-
-            {
-
-              key: "id",
-
-              header: "Actions",
-
-              render: (row) => (
-
-                <DeleteButton endpoint={`/api/shifts/${row.id as string}`} />
-
-              ),
-
-            },
-
-          ]}
-
-        />
-
+        <h2 className="text-lg font-semibold">Scheduled shifts</h2>
+        <SchedulingShiftsTableClient shifts={shifts} />
       </div>
-
-
 
       <div className="space-y-4">
-
-        <h2 className="text-lg font-semibold">Job Assignments</h2>
-
-        <DataTable
-
-          data={assignments}
-
-          emptyMessage="No assignments yet."
-
-          columns={[
-
-            {
-
-              key: "job",
-
-              header: "Job",
-
-              render: (row) => (row.job as { title: string }).title,
-
-            },
-
-            {
-
-              key: "assignee",
-
-              header: "Assigned to",
-
-              render: (row) =>
-
-                (row.staffProfile as { name: string } | null)?.name ??
-
-                (row.freelancerProfile as { name: string } | null)?.name ??
-
-                "—",
-
-            },
-
-            {
-
-              key: "assignedAt",
-
-              header: "Assigned",
-
-              render: (row) => formatDate(row.assignedAt as Date),
-
-            },
-
-            {
-
-              key: "id",
-
-              header: "Actions",
-
-              render: (row) => (
-
-                <DeleteButton endpoint={`/api/assignments/${row.id as string}`} label="Remove" />
-
-              ),
-
-            },
-
-          ]}
-
-        />
-
+        <h2 className="text-lg font-semibold">Job assignments</h2>
+        <SchedulingAssignmentsTableClient assignments={assignments} />
       </div>
-
     </div>
-
   );
-
 }
-

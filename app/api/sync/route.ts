@@ -54,7 +54,7 @@ export async function GET() {
     prisma.client.findMany({
       where: { organizationId },
       orderBy: { name: "asc" },
-      select: { id: true, name: true, email: true, phone: true },
+      select: { id: true, name: true, email: true, phone: true, notes: true },
     }),
     prisma.staffProfile.findMany({
       where: { organizationId },
@@ -131,6 +131,8 @@ export async function GET() {
     jobs: jobs.map((job) => ({
       ...job,
       scheduledAt: job.scheduledAt?.toISOString() ?? null,
+      startsAt: job.startsAt?.toISOString() ?? null,
+      endsAt: job.endsAt?.toISOString() ?? null,
     })),
     shifts: shifts.map((shift) => ({
       id: shift.id,

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { StatCard } from "@/components/app/StatCard";
 import { StaffForm, FreelancerForm } from "@/components/app/ModuleForms";
 import { WorkforceTables } from "@/components/app/WorkforceTables";
+import { DataImportPanel } from "@/components/app/DataImportPanel";
 import { formatStaffLimit, formatFreelancerLimit } from "@/lib/entitlements";
 import { ensureDefaultSkills } from "@/lib/services/skills";
 import { isWorkforceUploadConfigured } from "@/lib/blob-config";
@@ -48,6 +49,8 @@ export default async function WorkforcePage() {
         <StatCard title="Staff Members" value={staff.length} icon={Users} />
         <StatCard title="Freelancers" value={freelancers.length} icon={UserCheck} />
       </div>
+
+      <DataImportPanel allowedResources={["staff", "freelancers"]} compact />
 
       <WorkforceTables staff={staff} freelancers={freelancers} uploadsConfigured={uploadsConfigured} />
     </div>

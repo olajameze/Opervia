@@ -19,4 +19,14 @@ describe("csv import templates", () => {
   it("includes totalQuantity for equipment", () => {
     expect(importTemplateHeaders("equipment")).toContain("totalQuantity");
   });
+
+  it("includes notes for clients", () => {
+    expect(importTemplateHeaders("clients")).toContain("notes");
+  });
+
+  it("includes startsAt and endsAt for jobs", () => {
+    const headers = importTemplateHeaders("jobs");
+    expect(headers).toContain("startsAt");
+    expect(headers).toContain("endsAt");
+  });
 });

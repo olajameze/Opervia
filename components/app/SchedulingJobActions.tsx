@@ -1,21 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { formatDate } from "@/lib/utils";
+
+type FreelancerOption = { id: string; name: string; email: string | null };
+
+type AvailabilityResponse = {
+  status: string;
+  respondedAt: string;
+  freelancerProfile: { id: string; name: string };
+};
 
 export function SchedulingJobActions({
   jobId,
   freelancers,
 }: {
   jobId: string;
-  freelancers: { id: string; name: string; email: string | null }[];
+  freelancers: FreelancerOption[];
 }) {
   const [selected, setSelected] = useState<string[]>([]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string | null>(null);
+  const [responses, setResponses] = useState<AvailabilityResponse[]>([]);
 
   const withEmail = freelancers.filter((f) => f.email);
+
+  useEffect(() => {
+    void fetch(`/api/jobs/${jobId}/availability-requests`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.request?.responses) {
+          setResponses(data.request.responses);
+        }
+      })
+      .catch(() => undefined);
+  }, [jobId, result]);
 
   async function requestAvailability() {
     if (selected.length === 0) return;
@@ -65,7 +86,7 @@ export function SchedulingJobActions({
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Optional message"
+            placeholder="Optional message (job brief, skills, etc.)"
             className="w-full rounded-md border px-3 py-2 text-sm"
             rows={2}
           />
@@ -75,6 +96,20 @@ export function SchedulingJobActions({
           {result && <p className="text-xs text-muted-foreground">{result}</p>}
         </div>
       </details>
+      {responses.length > 0 && (
+        <div className="rounded-md border p-2 text-xs space-y-1">
+          <p className="font-medium">Availability responses</p>
+          {responses.map((r, i) => (
+            <p key={i}>
+              {r.freelancerProfile.name}:{" "}
+              <span className={r.status === "AVAILABLE" ? "text-green-700" : "text-muted-foreground"}>
+                {r.status === "AVAILABLE" ? "Available" : "Not available"}
+              </span>
+              {r.respondedAt && ` · ${formatDate(new Date(r.respondedAt))}`}
+            </p>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

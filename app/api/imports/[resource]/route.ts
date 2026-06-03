@@ -4,9 +4,12 @@ import { assertFreelancerCapacity, assertStaffCapacity } from "@/lib/api-auth";
 import {
   IMPORT_RESOURCES,
   importCsvResource,
+  importSpreadsheetResource,
   type ImportResource,
 } from "@/lib/imports/csv-import";
 import { hasActiveSubscription } from "@/lib/plans";
+
+const MAX_FILE_BYTES = 5 * 1024 * 1024;
 
 export async function POST(
   req: Request,
@@ -49,10 +52,37 @@ export async function POST(
     const formData = await req.formData();
     const file = formData.get("file");
     if (!(file instanceof File)) {
-      return NextResponse.json({ error: "CSV file is required" }, { status: 400 });
+      return NextResponse.json({ error: "Spreadsheet file is required" }, { status: 400 });
     }
-    const csvText = await file.text();
-    const summary = await importCsvResource(resource, csvText, ctx.organizationId);
+    if (file.size > MAX_FILE_BYTES) {
+      return NextResponse.json({ error: "File must be 5MB or smaller" }, { status: 400 });
+    }
+
+    const name = file.name.toLowerCase();
+    const isExcel = name.endsWith(".xlsx") || name.endsWith(".xls");
+    const isCsv = name.endsWith(".csv") || file.type.includes("csv") || file.type === "text/plain";
+
+    if (!isExcel && !isCsv) {
+      return NextResponse.json(
+        { error: "Upload a .csv, .xlsx, or .xls file" },
+        { status: 400 }
+      );
+    }
+
+    let summary;
+    if (isExcel) {
+      const buffer = await file.arrayBuffer();
+      summary = await importSpreadsheetResource(
+        resource,
+        buffer,
+        file.name,
+        ctx.organizationId
+      );
+    } else {
+      const csvText = await file.text();
+      summary = await importCsvResource(resource, csvText, ctx.organizationId);
+    }
+
     return NextResponse.json(summary);
   } catch {
     return NextResponse.json({ error: "Import failed" }, { status: 400 });

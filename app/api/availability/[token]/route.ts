@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { createFreelancerAssignment } from "@/lib/services/assignments";
+import { ipRateLimit } from "@/lib/security/rate-limit";
 
 const schema = z.object({
   freelancerId: z.string().min(1),
@@ -11,6 +13,9 @@ export async function POST(
   req: Request,
   { params }: { params: { token: string } }
 ) {
+  const limited = await ipRateLimit(req, "availability-respond", 30, 60 * 60 * 1000);
+  if (limited) return limited;
+
   try {
     const body = schema.parse(await req.json());
     const request = await prisma.availabilityRequest.findUnique({
@@ -48,6 +53,14 @@ export async function POST(
         respondedAt: new Date(),
       },
     });
+
+    if (body.status === "AVAILABLE") {
+      await createFreelancerAssignment({
+        jobId: request.jobId,
+        freelancerProfileId: freelancer.id,
+        organizationId: request.organizationId,
+      });
+    }
 
     return NextResponse.json(response);
   } catch {

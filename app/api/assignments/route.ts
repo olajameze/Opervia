@@ -2,11 +2,17 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { denyUnlessApiPermission, requireApiOrganization } from "@/lib/api-auth";
+import {
+  createFreelancerAssignment,
+  createStaffAssignment,
+} from "@/lib/services/assignments";
 
 const schema = z.object({
   jobId: z.string().min(1),
   staffProfileId: z.string().optional(),
   freelancerProfileId: z.string().optional(),
+  startTime: z.string().optional(),
+  endTime: z.string().optional(),
 });
 
 export async function POST(req: Request) {
@@ -25,27 +31,26 @@ export async function POST(req: Request) {
       );
     }
 
-    const job = await prisma.job.findFirst({
-      where: { id: body.jobId, organizationId: ctx.organizationId },
-    });
-    if (!job) {
-      return NextResponse.json({ error: "Job not found" }, { status: 404 });
-    }
-
-    const assignment = await prisma.assignment.create({
-      data: {
+    let assignment;
+    if (body.freelancerProfileId) {
+      assignment = await createFreelancerAssignment({
         jobId: body.jobId,
-        staffProfileId: body.staffProfileId || null,
-        freelancerProfileId: body.freelancerProfileId || null,
+        freelancerProfileId: body.freelancerProfileId,
         organizationId: ctx.organizationId,
-      },
-    });
-
-    if (job.status === "DRAFT" || job.status === "SCHEDULED") {
-      await prisma.job.update({
-        where: { id: job.id },
-        data: { status: "DISPATCHED" },
+        startTime: body.startTime ? new Date(body.startTime) : null,
+        endTime: body.endTime ? new Date(body.endTime) : null,
       });
+    } else if (body.staffProfileId) {
+      assignment = await createStaffAssignment({
+        jobId: body.jobId,
+        staffProfileId: body.staffProfileId,
+        organizationId: ctx.organizationId,
+      });
+    } else {
+      return NextResponse.json(
+        { error: "Assign a staff member or freelancer" },
+        { status: 400 }
+      );
     }
 
     return NextResponse.json(assignment, { status: 201 });

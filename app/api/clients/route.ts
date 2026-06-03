@@ -7,6 +7,7 @@ const schema = z.object({
   name: z.string().min(1),
   email: z.string().email().optional().or(z.literal("")),
   phone: z.string().optional(),
+  notes: z.string().optional(),
 });
 
 export async function POST(req: Request) {
@@ -23,6 +24,7 @@ export async function POST(req: Request) {
         name: body.name,
         email: body.email || null,
         phone: body.phone || null,
+        notes: body.notes || null,
         organizationId: ctx.organizationId,
       },
     });

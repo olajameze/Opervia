@@ -26,7 +26,9 @@ function applyOptimisticPatch(
       location: body.location ?? null,
       status: body.status ?? "DRAFT",
       priority: body.priority ?? "MEDIUM",
-      scheduledAt: body.scheduledAt ?? null,
+      scheduledAt: body.startsAt ?? body.scheduledAt ?? null,
+      startsAt: body.startsAt ?? body.scheduledAt ?? null,
+      endsAt: body.endsAt ?? body.startsAt ?? body.scheduledAt ?? null,
       projectId: body.projectId || null,
       assignments: [],
     });

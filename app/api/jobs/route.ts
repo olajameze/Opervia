@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { denyUnlessApiPermission, requireApiOrganization } from "@/lib/api-auth";
+import { resolveJobDates } from "@/lib/services/assignments";
 
 const schema = z.object({
   title: z.string().min(1),
@@ -11,6 +12,8 @@ const schema = z.object({
   status: z.enum(["DRAFT", "SCHEDULED", "DISPATCHED", "IN_PROGRESS", "COMPLETED", "CANCELLED"]).default("DRAFT"),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).default("MEDIUM"),
   scheduledAt: z.string().optional(),
+  startsAt: z.string().optional(),
+  endsAt: z.string().optional(),
 });
 
 export async function POST(req: Request) {
@@ -22,6 +25,7 @@ export async function POST(req: Request) {
 
   try {
     const body = schema.parse(await req.json());
+    const dates = resolveJobDates(body);
     const job = await prisma.job.create({
       data: {
         title: body.title,
@@ -30,7 +34,9 @@ export async function POST(req: Request) {
         projectId: body.projectId || null,
         status: body.status,
         priority: body.priority,
-        scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : null,
+        scheduledAt: dates.scheduledAt,
+        startsAt: dates.startsAt,
+        endsAt: dates.endsAt,
         organizationId: ctx.organizationId,
       },
     });

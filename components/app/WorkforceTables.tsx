@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { DataTable } from "@/components/app/DataTable";
+import { SortableDataTable } from "@/components/app/SortableDataTable";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DeleteButton } from "@/components/app/ModuleForms";
@@ -270,7 +270,7 @@ export function WorkforceTables({
             placeholder="Name, email, phone, location, or skill"
           />
         </div>
-        <DataTable
+        <SortableDataTable
           data={filteredStaff}
           emptyMessage="No staff profiles yet."
           columns={[
@@ -313,7 +313,7 @@ export function WorkforceTables({
             placeholder="Name, email, phone, location, or skill"
           />
         </div>
-        <DataTable
+        <SortableDataTable
           data={filteredFreelancers}
           emptyMessage="No freelancer profiles yet."
           columns={[
