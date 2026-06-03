@@ -8,25 +8,34 @@ export type RegistryRow = Record<string, unknown>;
 type RegistryListPanelProps = {
   title: string;
   rows: RegistryRow[];
-  columns: { key: string; header: string; render?: (row: RegistryRow) => React.ReactNode }[];
+  columns: { key: string; header: string }[];
   searchPlaceholder: string;
-  filterRow: (row: RegistryRow, query: string) => boolean;
+  /** Row keys joined for search matching (e.g. ["name", "email", "phone"]) */
+  searchKeys: string[];
 };
+
+function matchesQuery(row: RegistryRow, query: string, searchKeys: string[]): boolean {
+  const haystack = searchKeys
+    .map((key) => String(row[key] ?? ""))
+    .join(" ")
+    .toLowerCase();
+  return haystack.includes(query);
+}
 
 export function RegistryListPanel({
   title,
   rows,
   columns,
   searchPlaceholder,
-  filterRow,
+  searchKeys,
 }: RegistryListPanelProps) {
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return rows;
-    return rows.filter((row) => filterRow(row, q));
-  }, [filterRow, query, rows]);
+    return rows.filter((row) => matchesQuery(row, q, searchKeys));
+  }, [query, rows, searchKeys]);
 
   return (
     <Card>
@@ -62,10 +71,10 @@ export function RegistryListPanel({
                 </tr>
               ) : (
                 filtered.map((row, i) => (
-                  <tr key={i} className="border-b last:border-0 hover:bg-muted/30">
+                  <tr key={String(row.id ?? i)} className="border-b last:border-0 hover:bg-muted/30">
                     {columns.map((col) => (
                       <td key={col.key} className="px-3 py-2">
-                        {col.render ? col.render(row) : String(row[col.key] ?? "—")}
+                        {String(row[col.key] ?? "—")}
                       </td>
                     ))}
                   </tr>

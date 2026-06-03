@@ -14,6 +14,11 @@ import {
   SchedulingShiftsTableClient,
   SchedulingAssignmentsTableClient,
 } from "@/components/app/SchedulingTables";
+import {
+  serializeSchedulingAssignments,
+  serializeSchedulingJobs,
+  serializeSchedulingShifts,
+} from "@/lib/scheduling-serialize";
 import { Calendar, Clock, CheckCircle } from "lucide-react";
 
 export default async function SchedulingPage() {
@@ -22,7 +27,7 @@ export default async function SchedulingPage() {
   const [jobs, shifts, projects, clients, staff, freelancers, assignments] = await Promise.all([
     prisma.job.findMany({
       where: { organizationId: organization.id },
-      orderBy: { startsAt: "asc" },
+      orderBy: [{ startsAt: "asc" }, { scheduledAt: "asc" }],
       include: {
         project: true,
         assignments: { include: { staffProfile: true, freelancerProfile: true } },
@@ -81,6 +86,10 @@ export default async function SchedulingPage() {
     status: p.status,
   }));
 
+  const serializedJobs = serializeSchedulingJobs(jobs);
+  const serializedShifts = serializeSchedulingShifts(shifts);
+  const serializedAssignments = serializeSchedulingAssignments(assignments);
+
   return (
     <div className="space-y-8">
       <div>
@@ -99,10 +108,8 @@ export default async function SchedulingPage() {
         <RegistryListPanel
           title="Clients"
           rows={clientRows}
+          searchKeys={["name", "email", "phone", "notes"]}
           searchPlaceholder="Search by name, email, phone, notes…"
-          filterRow={(row, q) =>
-            [row.name, row.email, row.phone, row.notes].join(" ").toLowerCase().includes(q)
-          }
           columns={[
             { key: "name", header: "Name" },
             { key: "email", header: "Email" },
@@ -112,10 +119,8 @@ export default async function SchedulingPage() {
         <RegistryListPanel
           title="Projects"
           rows={projectRows}
+          searchKeys={["name", "client", "description"]}
           searchPlaceholder="Search by project name or client…"
-          filterRow={(row, q) =>
-            [row.name, row.client, row.description].join(" ").toLowerCase().includes(q)
-          }
           columns={[
             { key: "name", header: "Project" },
             { key: "client", header: "Client" },
@@ -150,7 +155,7 @@ export default async function SchedulingPage() {
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Jobs</h2>
         <SchedulingJobsTableClient
-          jobs={jobs}
+          jobs={serializedJobs}
           freelancers={freelancers.map((f) => ({
             id: f.id,
             name: f.name,
@@ -161,12 +166,12 @@ export default async function SchedulingPage() {
 
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Scheduled shifts</h2>
-        <SchedulingShiftsTableClient shifts={shifts} />
+        <SchedulingShiftsTableClient shifts={serializedShifts} />
       </div>
 
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Job assignments</h2>
-        <SchedulingAssignmentsTableClient assignments={assignments} />
+        <SchedulingAssignmentsTableClient assignments={serializedAssignments} />
       </div>
     </div>
   );

@@ -6,22 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { DeleteButton, StatusSelect } from "@/components/app/ModuleForms";
 import { SchedulingJobActions } from "@/components/app/SchedulingJobActions";
 import { formatDate } from "@/lib/utils";
+import type {
+  SerializedAssignmentRow,
+  SerializedJobRow,
+  SerializedShiftRow,
+} from "@/lib/scheduling-serialize";
 
-type JobRow = {
-  id: string;
-  title: string;
-  status: string;
-  priority: string;
-  location: string | null;
-  startsAt: Date | string | null;
-  endsAt: Date | string | null;
-  scheduledAt: Date | string | null;
-  project: { name: string } | null;
-  assignments: Array<{
-    staffProfile?: { name: string } | null;
-    freelancerProfile?: { name: string } | null;
-  }>;
-};
+type JobRow = SerializedJobRow;
 
 function formatJobRange(job: JobRow): string {
   const start = job.startsAt ?? job.scheduledAt;
@@ -147,13 +138,7 @@ export function SchedulingJobsTableClient({
 export function SchedulingShiftsTableClient({
   shifts,
 }: {
-  shifts: Array<{
-    id: string;
-    startTime: Date | string;
-    endTime: Date | string;
-    staffProfile: { name: string };
-    job: { title: string } | null;
-  }>;
+  shifts: SerializedShiftRow[];
 }) {
   const [query, setQuery] = useState("");
   const rows = useMemo(() => {
@@ -219,15 +204,7 @@ export function SchedulingShiftsTableClient({
 export function SchedulingAssignmentsTableClient({
   assignments,
 }: {
-  assignments: Array<{
-    id: string;
-    assignedAt: Date | string;
-    startTime: Date | string | null;
-    endTime: Date | string | null;
-    job: { title: string };
-    staffProfile: { name: string } | null;
-    freelancerProfile: { name: string } | null;
-  }>;
+  assignments: SerializedAssignmentRow[];
 }) {
   const [query, setQuery] = useState("");
   const rows = useMemo(() => {
