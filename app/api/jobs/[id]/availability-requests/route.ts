@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { denyUnlessApiPermission, requireApiOrganization } from "@/lib/api-auth";
-import { sendEmail } from "@/lib/email";
+import { getEmailConfigError, sendEmail } from "@/lib/email";
 import { getAppUrl } from "@/lib/app-url";
 import { BRAND } from "@/lib/branding";
 import { formatDate } from "@/lib/utils";
@@ -106,12 +106,25 @@ export async function POST(
         : "";
     const dateLine = formatJobDates(job);
 
+    const configError = getEmailConfigError();
+    if (configError) {
+      return NextResponse.json(
+        {
+          error: `Email is not configured (${configError}). Add RESEND_API_KEY and RESEND_FROM in Vercel environment variables.`,
+        },
+        { status: 503 }
+      );
+    }
+
+    let emailed = 0;
+    const failures: string[] = [];
+
     for (const freelancer of freelancers) {
       if (!freelancer.email) continue;
       const availableUrl = `${baseUrl}/availability/${token}?freelancerId=${freelancer.id}&intent=available`;
       const unavailableUrl = `${baseUrl}/availability/${token}?freelancerId=${freelancer.id}&intent=unavailable`;
 
-      await sendEmail({
+      const result = await sendEmail({
         to: freelancer.email,
         subject: `${BRAND.name} availability request — ${job.title}`,
         text: [
@@ -142,9 +155,34 @@ export async function POST(
             <a href="${unavailableUrl}" style="display:inline-block;padding:10px 16px;background:#fff;color:#111;text-decoration:none;border-radius:6px;border:1px solid #ccc">Not available</a>
           </p>`,
       });
+
+      if (result.ok && !result.dev) {
+        emailed++;
+      } else if (result.ok && result.dev) {
+        failures.push(`${freelancer.name}: email not sent (dev mode — configure Resend)`);
+      } else {
+        failures.push(`${freelancer.name}: ${result.error}`);
+      }
     }
 
-    return NextResponse.json({ request, emailed: freelancers.length }, { status: 201 });
+    if (emailed === 0) {
+      return NextResponse.json(
+        {
+          error:
+            failures[0] ??
+            "No emails were sent. Check Resend configuration and freelancer email addresses.",
+          request,
+          emailed: 0,
+          failures,
+        },
+        { status: 502 }
+      );
+    }
+
+    return NextResponse.json(
+      { request, emailed, failures: failures.length > 0 ? failures : undefined },
+      { status: 201 }
+    );
   } catch {
     return NextResponse.json({ error: "Invalid availability request" }, { status: 400 });
   }

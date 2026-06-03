@@ -49,7 +49,15 @@ export function SchedulingJobActions({
     });
     const data = await res.json();
     setLoading(false);
-    setResult(res.ok ? `Sent to ${data.emailed} freelancer(s)` : data.error ?? "Send failed");
+    if (!res.ok) {
+      setResult(data.error ?? "Send failed");
+      return;
+    }
+    const partial =
+      Array.isArray(data.failures) && data.failures.length > 0
+        ? ` Warning: ${data.failures.join("; ")}`
+        : "";
+    setResult(`Email sent to ${data.emailed} freelancer(s).${partial}`);
   }
 
   return (
@@ -65,6 +73,11 @@ export function SchedulingJobActions({
       <details className="text-sm">
         <summary className="cursor-pointer text-primary">Request availability</summary>
         <div className="mt-2 space-y-2 rounded-md border p-3">
+          {withEmail.length === 0 ? (
+            <p className="text-xs text-muted-foreground">
+              No freelancers have an email on file. Add an email in Workforce → Freelancers first.
+            </p>
+          ) : (
           <div className="flex flex-wrap gap-2">
             {withEmail.map((freelancer) => (
               <label key={freelancer.id} className="flex items-center gap-1 text-xs">
@@ -79,10 +92,11 @@ export function SchedulingJobActions({
                     );
                   }}
                 />
-                {freelancer.name}
+                {freelancer.name} ({freelancer.email})
               </label>
             ))}
           </div>
+          )}
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -90,7 +104,11 @@ export function SchedulingJobActions({
             className="w-full rounded-md border px-3 py-2 text-sm"
             rows={2}
           />
-          <Button size="sm" onClick={() => void requestAvailability()} disabled={loading || selected.length === 0}>
+          <Button
+            size="sm"
+            onClick={() => void requestAvailability()}
+            disabled={loading || selected.length === 0 || withEmail.length === 0}
+          >
             {loading ? "Sending..." : "Send availability email"}
           </Button>
           {result && <p className="text-xs text-muted-foreground">{result}</p>}
