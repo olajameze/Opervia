@@ -3,39 +3,48 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { BRAND } from "@/lib/branding";
-import { PWA_INSTALL_DISMISSED_KEY } from "@/lib/pwa/types";
+import { PWA_INSTALL_DISMISSED_SESSION_KEY } from "@/lib/pwa/types";
+import {
+  detectInstallPlatform,
+  getInstallFallbackMessage,
+  type InstallPlatform,
+} from "@/lib/pwa/install-platform";
 import { useOptionalPwa } from "@/components/pwa/PwaProvider";
-import { X, Download, Share } from "lucide-react";
+import { X, Download, Share, MonitorDown } from "lucide-react";
+
+const SHOW_DELAY_MS = 500;
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
 
-function isIosSafari() {
-  if (typeof window === "undefined") return false;
-  const ua = window.navigator.userAgent;
-  const isIos = /iphone|ipad|ipod/i.test(ua);
-  const isSafari = /safari/i.test(ua) && !/crios|fxios|edgios/i.test(ua);
-  return isIos && isSafari;
+function FallbackIcon({ platform }: { platform: InstallPlatform }) {
+  if (platform === "ios-safari") {
+    return <Share className="h-4 w-4 shrink-0" />;
+  }
+  if (platform === "macos-safari") {
+    return <MonitorDown className="h-4 w-4 shrink-0" />;
+  }
+  return <Download className="h-4 w-4 shrink-0" />;
 }
 
 export function InstallPrompt() {
   const pwa = useOptionalPwa();
   const [visible, setVisible] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [showIosHelp, setShowIosHelp] = useState(false);
+  const [platform, setPlatform] = useState<InstallPlatform>("generic");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (localStorage.getItem(PWA_INSTALL_DISMISSED_KEY)) return;
+    if (sessionStorage.getItem(PWA_INSTALL_DISMISSED_SESSION_KEY)) return;
     if (pwa?.isInstalled) return;
 
-    if (isIosSafari()) {
-      setShowIosHelp(true);
+    setPlatform(detectInstallPlatform());
+
+    const showTimer = window.setTimeout(() => {
       setVisible(true);
-      return;
-    }
+    }, SHOW_DELAY_MS);
 
     function handleBeforeInstall(event: Event) {
       event.preventDefault();
@@ -44,11 +53,14 @@ export function InstallPrompt() {
     }
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstall);
-    return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstall);
+    return () => {
+      window.clearTimeout(showTimer);
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstall);
+    };
   }, [pwa?.isInstalled]);
 
   function dismiss() {
-    localStorage.setItem(PWA_INSTALL_DISMISSED_KEY, String(Date.now()));
+    sessionStorage.setItem(PWA_INSTALL_DISMISSED_SESSION_KEY, String(Date.now()));
     setVisible(false);
   }
 
@@ -66,6 +78,8 @@ export function InstallPrompt() {
 
   if (!visible) return null;
 
+  const showNativeInstall = Boolean(deferredPrompt);
+
   return (
     <div
       role="dialog"
@@ -76,9 +90,7 @@ export function InstallPrompt() {
         <div className="space-y-1">
           <p className="font-semibold">Install {BRAND.name}</p>
           <p className="text-sm text-muted-foreground">
-            {showIosHelp
-              ? "Add Opervia to your home screen for quick access and offline use."
-              : "Install the app on this device for faster access and offline operations."}
+            Install on desktop or mobile for faster access and offline operations.
           </p>
         </div>
         <button
@@ -91,12 +103,7 @@ export function InstallPrompt() {
         </button>
       </div>
 
-      {showIosHelp ? (
-        <div className="mt-4 flex items-center gap-2 rounded-md bg-muted/60 px-3 py-2 text-sm">
-          <Share className="h-4 w-4 shrink-0" />
-          <span>Tap Share, then &quot;Add to Home Screen&quot;</span>
-        </div>
-      ) : (
+      {showNativeInstall ? (
         <div className="mt-4 flex gap-2">
           <Button size="sm" onClick={install} className="gap-2">
             <Download className="h-4 w-4" />
@@ -106,6 +113,18 @@ export function InstallPrompt() {
             Not now
           </Button>
         </div>
+      ) : (
+        <>
+          <div className="mt-4 flex items-center gap-2 rounded-md bg-muted/60 px-3 py-2 text-sm">
+            <FallbackIcon platform={platform} />
+            <span>{getInstallFallbackMessage(platform)}</span>
+          </div>
+          <div className="mt-4">
+            <Button size="sm" variant="outline" onClick={dismiss}>
+              Got it
+            </Button>
+          </div>
+        </>
       )}
     </div>
   );

@@ -91,5 +91,5 @@ export type OfflineMeta = {
   organizationId: string | null;
 };
 
-export const PWA_INSTALL_DISMISSED_KEY = "opervia:pwa-install-dismissed";
+export const PWA_INSTALL_DISMISSED_SESSION_KEY = "opervia:pwa-install-dismissed-session";
 export const PWA_SYNC_EVENT = "opervia:pwa-sync";
